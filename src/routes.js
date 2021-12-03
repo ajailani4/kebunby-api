@@ -1,10 +1,12 @@
-const { register } = require('./handler/identity');
+const { register } = require('./handler/identity-handler');
+
+const prefix = '/api/v1';
 
 const routes = [
   // Register
   {
     method: 'POST',
-    path: '/register',
+    path: `${prefix}/register`,
     handler: register,
   },
 ];
