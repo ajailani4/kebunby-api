@@ -1,4 +1,4 @@
-const { register } = require('./handler/identity-handler');
+const { register, login } = require('./handler/identity-handler');
 
 const prefix = '/api/v1';
 
@@ -7,7 +7,15 @@ const routes = [
   {
     method: 'POST',
     path: `${prefix}/register`,
+    config: { auth: false },
     handler: register,
+  },
+  // Login
+  {
+    method: 'POST',
+    path: `${prefix}/login`,
+    config: { auth: false },
+    handler: login,
   },
 ];
 
