@@ -2,7 +2,7 @@ const pool = require('../db');
 
 const getPlants = async (request, h) => {
   let { page, size } = request.query;
-  const { isTrending, category, searchQ } = request.query;
+  const { isTrending, category, searchQuery } = request.query;
   let response = '';
   let result = '';
 
@@ -11,10 +11,10 @@ const getPlants = async (request, h) => {
     size = size || 10;
 
     // Get all plants
-    if ((!isTrending || isTrending === 'false') && !category && !searchQ) {
+    if ((!isTrending || isTrending === 'false') && !category && !searchQuery) {
       result = await pool.query(
         'SELECT * FROM public."plant" OFFSET $1 LIMIT $2',
-        [(page - 1) * 5, size],
+        [(page - 1) * size, size],
       );
     }
 
@@ -27,7 +27,15 @@ const getPlants = async (request, h) => {
     if (category) {
       result = await pool.query(
         'SELECT * FROM public."plant" WHERE category=$1 OFFSET $2 LIMIT $3',
-        [category, (page - 1) * 5, size],
+        [category, (page - 1) * size, size],
+      );
+    }
+
+    // Get plants by search query
+    if (searchQuery) {
+      result = await pool.query(
+        `SELECT * FROM public."plant" WHERE name LIKE '%${searchQuery}%' OFFSET $1 LIMIT $2`,
+        [(page - 1) * size, size],
       );
     }
 
