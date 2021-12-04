@@ -50,6 +50,8 @@ const getPlants = async (request, h) => {
         popularity: plant.popularity,
       })),
     });
+
+    response.code(200);
   } catch (err) {
     response = h.response({
       code: 400,
