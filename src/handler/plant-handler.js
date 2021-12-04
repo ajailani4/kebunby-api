@@ -19,6 +19,22 @@ const getAllPlants = async (page, size) => {
   };
 };
 
+const getTrendingPlants = async () => {
+  const result = await pool.query('SELECT * FROM public."plant" ORDER BY popularity DESC OFFSET 1 LIMIT 7');
+
+  return {
+    code: 200,
+    status: 'OK',
+    data: result.rows.map((plant) => ({
+      id: plant.id,
+      name: plant.name,
+      image: plant.image,
+      wateringFreq: plant.watering_freq,
+      popularity: plant.popularity,
+    })),
+  };
+};
+
 const getPlants = async (request, h) => {
   let { page, size } = request.query;
   const { isTrending, category, searchQ } = request.query;
@@ -29,8 +45,13 @@ const getPlants = async (request, h) => {
     size = size || 10;
 
     // Get all plants
-    if (!isTrending && !category && !searchQ) {
+    if ((!isTrending || isTrending === 'false') && !category && !searchQ) {
       response = h.response(await getAllPlants(page, size)).code(200);
+    }
+
+    // Get trending plants
+    if (isTrending === 'true') {
+      response = h.response(await getTrendingPlants()).code(200);
     }
   } catch (err) {
     response = h.response({
