@@ -1,7 +1,7 @@
 const pool = require('../db');
 
 const validateJwt = async (decoded, request, h) => {
-  const query = 'SELECT * FROM user WHERE username=$1';
+  const query = 'SELECT * FROM public."user" WHERE username=$1';
   let isValidated = false;
 
   try {
