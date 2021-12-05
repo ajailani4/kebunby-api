@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
+const { generateJwt } = require('../utils/jwt-utils');
 
 const saltRounds = 10;
 
@@ -8,21 +9,15 @@ const register = async (request, h) => {
   const {
     username, email, password, name,
   } = request.payload;
-  const query = 'INSERT INTO public."user" (username, email, password, name) VALUES ($1, $2, $3, $4) RETURNING *';
   let response = '';
 
   try {
     // Hash user password
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    const result = await pool.query(query, [username, email, hashedPassword, name]);
-
-    // Generate JWT Token
-    const jwtToken = jwt.sign(
-      {
-        username: result.rows[0].username,
-      },
-      process.env.JWT_SECRET,
+    const result = await pool.query(
+      'INSERT INTO public."user" (username, email, password, name) VALUES ($1, $2, $3, $4) RETURNING *',
+      [username, email, hashedPassword, name],
     );
 
     response = h.response({
@@ -30,7 +25,7 @@ const register = async (request, h) => {
       status: 'Created',
       data: {
         username: result.rows[0].username,
-        accessToken: jwtToken,
+        accessToken: generateJwt(jwt, username),
       },
     });
 
@@ -41,7 +36,7 @@ const register = async (request, h) => {
     response = h.response({
       code: 400,
       status: 'Bad Request',
-      message: err.message,
+      message: 'error',
     });
 
     response.code(400);
@@ -54,30 +49,24 @@ const register = async (request, h) => {
 
 const login = async (request, h) => {
   const { username, password } = request.payload;
-  const query = 'SELECT * FROM public."user" WHERE username=$1';
   let response = '';
 
   try {
-    const result = await pool.query(query, [username]);
+    const result = await pool.query(
+      'SELECT * FROM public."user" WHERE username=$1',
+      [username],
+    );
 
     if (result.rows[0]) {
       const hashedPassword = result.rows[0].password;
 
       if (await bcrypt.compare(password, hashedPassword)) {
-        // Generate JWT Token
-        const jwtToken = jwt.sign(
-          {
-            username: result.rows[0].username,
-          },
-          process.env.JWT_SECRET,
-        );
-
         response = h.response({
           code: 200,
           status: 'OK',
           data: {
             username: result.rows[0].username,
-            accessToken: jwtToken,
+            accessToken: generateJwt(jwt, username),
           },
         });
 
@@ -104,7 +93,7 @@ const login = async (request, h) => {
     response = h.response({
       code: 400,
       status: 'Bad Request',
-      message: err.message,
+      message: 'error',
     });
 
     response.code(400);
