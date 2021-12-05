@@ -112,7 +112,7 @@ const getPlantDetails = async (request, h) => {
         message: 'Plant is not found',
       });
 
-      response.code(400);
+      response.code(404);
     }
   } catch (err) {
     response = h.response({
