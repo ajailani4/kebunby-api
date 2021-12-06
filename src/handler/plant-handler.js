@@ -1,4 +1,4 @@
-const pool = require('../db');
+const pool = require('../config/db-config');
 
 const getPlants = async (request, h) => {
   let { page, size } = request.query;
@@ -129,4 +129,24 @@ const getPlantDetails = async (request, h) => {
   return response;
 };
 
-module.exports = { getPlants, getPlantDetails };
+const uploadPlant = async (request, h) => {
+  let response = '';
+
+  try {
+    // upload plant
+  } catch (err) {
+    response = h.response({
+      code: 400,
+      status: 'Bad Request',
+      message: 'error',
+    });
+
+    response.code(400);
+
+    console.log(err);
+  }
+
+  return response;
+};
+
+module.exports = { getPlants, getPlantDetails, uploadPlant };
