@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db-config');
-const { generateJwt } = require('../utils/jwt-utils');
+const { generateJwt } = require('../util/jwt-util');
 
 const saltRounds = 10;
 

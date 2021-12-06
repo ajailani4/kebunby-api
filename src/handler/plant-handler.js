@@ -1,5 +1,5 @@
 const pool = require('../config/db-config');
-const { uploadImage } = require('../utils/multer-utils');
+const { uploadImage } = require('../util/cloudinary-util');
 
 const getPlants = async (request, h) => {
   let { page, size } = request.query;
@@ -132,16 +132,25 @@ const getPlantDetails = async (request, h) => {
 
 const uploadPlant = async (request, h) => {
   const {
-    name, latinName, category, wateringFreq, growthEst, desc, author,
+    name, latinName, wateringFreq, growthEst, desc, author,
   } = request.payload;
-  let { tools, materials, steps } = request.payload;
+  let {
+    image, category, tools, materials, steps,
+  } = request.payload;
   let response = '';
 
   try {
+    const uploadImageResult = await uploadImage('plant_images', image);
+    image = uploadImageResult.url;
+
+    category = Number(category);
+
     // Convert tools, materials, and steps to be array
     tools = tools.split(', ');
     materials = materials.split(', ');
     steps = steps.split(', ');
+
+    const publishedOn = new Date().toISOString().slice(0, 10);
 
     response = h.response({
       code: 201,
@@ -149,6 +158,7 @@ const uploadPlant = async (request, h) => {
       data: {
         name,
         latinName,
+        image,
         category,
         wateringFreq,
         growthEst,
@@ -157,6 +167,7 @@ const uploadPlant = async (request, h) => {
         materials,
         steps,
         author,
+        publishedOn,
       },
     });
 
