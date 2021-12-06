@@ -36,7 +36,12 @@ const routes = [
   {
     method: 'POST',
     path: `${prefix}/plants`,
-    config: { auth: 'jwt' },
+    config: {
+      auth: 'jwt',
+      payload: {
+        multipart: true,
+      },
+    },
     handler: uploadPlant,
   },
 ];

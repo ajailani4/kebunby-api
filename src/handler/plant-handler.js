@@ -1,4 +1,5 @@
 const pool = require('../config/db-config');
+const { uploadImage } = require('../utils/multer-utils');
 
 const getPlants = async (request, h) => {
   let { page, size } = request.query;
@@ -130,10 +131,36 @@ const getPlantDetails = async (request, h) => {
 };
 
 const uploadPlant = async (request, h) => {
+  const {
+    name, latinName, category, wateringFreq, growthEst, desc, author,
+  } = request.payload;
+  let { tools, materials, steps } = request.payload;
   let response = '';
 
   try {
-    // upload plant
+    // Convert tools, materials, and steps to be array
+    tools = tools.split(', ');
+    materials = materials.split(', ');
+    steps = steps.split(', ');
+
+    response = h.response({
+      code: 201,
+      status: 'Created',
+      data: {
+        name,
+        latinName,
+        category,
+        wateringFreq,
+        growthEst,
+        desc,
+        tools,
+        materials,
+        steps,
+        author,
+      },
+    });
+
+    response.code(201);
   } catch (err) {
     response = h.response({
       code: 400,
