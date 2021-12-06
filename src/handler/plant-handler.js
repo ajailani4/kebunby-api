@@ -152,10 +152,9 @@ const uploadPlant = async (request, h) => {
 
     const publishedOn = new Date().toISOString().slice(0, 10);
 
-    response = h.response({
-      code: 201,
-      status: 'Created',
-      data: {
+    const result = await pool.query(
+      'INSERT INTO public."plant" (name, latin_name, image, category, watering_freq, growth_est, "desc", tools, materials, steps, popularity, author, published_on) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *',
+      [
         name,
         latinName,
         image,
@@ -166,12 +165,29 @@ const uploadPlant = async (request, h) => {
         tools,
         materials,
         steps,
+        0,
         author,
         publishedOn,
-      },
-    });
+      ],
+    );
 
-    response.code(201);
+    if (result) {
+      response = h.response({
+        code: 201,
+        status: 'Created',
+        message: 'New plant has been added successfully',
+      });
+
+      response.code(201);
+    } else {
+      response = h.response({
+        code: 500,
+        status: 'Internal Server Error',
+        message: 'New plant cannot be added',
+      });
+
+      response.code(500);
+    }
   } catch (err) {
     response = h.response({
       code: 400,
