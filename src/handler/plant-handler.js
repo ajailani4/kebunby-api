@@ -38,7 +38,7 @@ const getPlants = async (request, h) => {
     // Get plants by search query
     if (searchQuery) {
       result = await pool.query(
-        `SELECT * FROM public."plant" WHERE name LIKE '%${searchQuery}%' OFFSET $1 LIMIT $2`,
+        `SELECT * FROM public."plant" WHERE name ILIKE '%${searchQuery}%' OFFSET $1 LIMIT $2`,
         [(page - 1) * size, size],
       );
     }
