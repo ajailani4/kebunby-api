@@ -1,4 +1,4 @@
-const pool = require('../db');
+const pool = require('../config/db-config');
 
 const validateJwt = async (decoded, request, h) => {
   const query = 'SELECT * FROM public."user" WHERE username=$1';
