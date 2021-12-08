@@ -1,5 +1,5 @@
 const pool = require('../config/db-config');
-const { uploadImage } = require('../util/cloudinary-util');
+const { uploadImage, deleteImage } = require('../util/cloudinary-util');
 
 const getPlants = async (request, h) => {
   let { page, size } = request.query;
@@ -132,6 +132,7 @@ const uploadPlant = async (request, h) => {
   let response = '';
 
   try {
+    // Upload image to Cloudinary
     const uploadImageResult = await uploadImage('plant_images', image);
     image = uploadImageResult.url;
 
@@ -142,7 +143,7 @@ const uploadPlant = async (request, h) => {
 
     const publishedOn = new Date().toISOString().slice(0, 10);
 
-    // Insert new plant
+    // Insert new plant to database
     const result = await pool.query(
       'INSERT INTO public."plant" (name, latin_name, image, category, watering_freq, growth_est, "desc", tools, materials, steps, popularity, author, published_on) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *',
       [
@@ -233,7 +234,7 @@ const updatePlant = async (request, h) => {
       materials = materials.split(', ');
       steps = steps.split(', ');
 
-      // Update plant
+      // Update plant from database
       if (image.length > 0) {
         const uploadImageResult = await uploadImage('plant_images', image);
         image = uploadImageResult.url;
@@ -321,11 +322,24 @@ const updatePlant = async (request, h) => {
 
 const deletePlant = async (request, h) => {
   const { id } = request.params;
+  let result = '';
   let response = '';
 
   try {
     if (await isPlantExist(id)) {
-      const result = await pool.query(
+      // Get image url
+      result = await pool.query(
+        'SELECT image FROM public."plant" WHERE id=$1',
+        [id],
+      );
+
+      // Delete image from Cloudinary
+      const pathNames = result.rows[0].image.split('/');
+      const publicId = `${pathNames[pathNames.length - 2]}/${pathNames[pathNames.length - 1]}`.split('.')[0];
+      await deleteImage(publicId);
+
+      // Delete plant from database
+      result = await pool.query(
         'DELETE FROM public."plant" WHERE id=$1',
         [id],
       );
