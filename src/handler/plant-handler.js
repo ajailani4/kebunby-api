@@ -3,7 +3,7 @@ const { uploadImage } = require('../util/cloudinary-util');
 
 const getPlants = async (request, h) => {
   let { page, size } = request.query;
-  const { isTrending, category, searchQuery } = request.query;
+  const { isTrending, searchQuery } = request.query;
   let response = '';
   let result = '';
 
@@ -12,7 +12,7 @@ const getPlants = async (request, h) => {
     size = size || 10;
 
     // Get all plants
-    if ((!isTrending || isTrending === 'false') && !category && !searchQuery) {
+    if ((!isTrending || isTrending === 'false') && !searchQuery) {
       result = await pool.query(
         'SELECT * FROM public."plant" OFFSET $1 LIMIT $2',
         [(page - 1) * size, size],
@@ -24,14 +24,6 @@ const getPlants = async (request, h) => {
       result = await pool.query(
         'SELECT * FROM public."plant" ORDER BY popularity DESC OFFSET $1 LIMIT $2',
         [(page - 1) * size, size],
-      );
-    }
-
-    // Get plants by category
-    if (category) {
-      result = await pool.query(
-        'SELECT * FROM public."plant" WHERE category=$1 OFFSET $2 LIMIT $3',
-        [category, (page - 1) * size, size],
       );
     }
 
