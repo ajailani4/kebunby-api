@@ -124,18 +124,16 @@ const getPlantDetails = async (request, h) => {
 
 const uploadPlant = async (request, h) => {
   const {
-    name, latinName, wateringFreq, growthEst, desc, author,
+    name, latinName, category, wateringFreq, growthEst, desc, author,
   } = request.payload;
   let {
-    image, category, tools, materials, steps,
+    image, tools, materials, steps,
   } = request.payload;
   let response = '';
 
   try {
     const uploadImageResult = await uploadImage('plant_images', image);
     image = uploadImageResult.url;
-
-    category = Number(category);
 
     // Convert tools, materials, and steps to be array
     tools = tools.split(', ');
@@ -195,4 +193,130 @@ const uploadPlant = async (request, h) => {
   return response;
 };
 
-module.exports = { getPlants, getPlantDetails, uploadPlant };
+const isPlantExist = async (id) => {
+  let isExist = false;
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM public."plant" WHERE id=$1',
+      [id],
+    );
+
+    if (result.rows[0]) {
+      isExist = true;
+    } else {
+      isExist = false;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+
+  return isExist;
+};
+
+const updatePlant = async (request, h) => {
+  const { id } = request.params;
+  const {
+    name, latinName, category, wateringFreq, growthEst, desc, popularity, author, publishedOn,
+  } = request.payload;
+  let {
+    image, tools, materials, steps,
+  } = request.payload;
+  let result = '';
+  let response = '';
+
+  try {
+    if (await isPlantExist(id)) {
+      // Convert tools, materials, and steps to be array
+      tools = tools.split(', ');
+      materials = materials.split(', ');
+      steps = steps.split(', ');
+
+      if (image.length > 0) {
+        const uploadImageResult = await uploadImage('plant_images', image);
+        image = uploadImageResult.url;
+
+        result = await pool.query(
+          'UPDATE public."plant" SET "name"=$1, latin_name=$2, image=$3, category=$4, watering_freq=$5, growth_est=$6, "desc"=$7, tools=$8, materials=$9, steps=$10, popularity=$11, author=$12, published_on=$13 WHERE id=$14',
+          [
+            name,
+            latinName,
+            image,
+            category,
+            wateringFreq,
+            growthEst,
+            desc,
+            tools,
+            materials,
+            steps,
+            popularity,
+            author,
+            publishedOn,
+            id,
+          ],
+        );
+      } else {
+        result = await pool.query(
+          'UPDATE public."plant" SET "name"=$1, latin_name=$2, category=$3, watering_freq=$4, growth_est=$5, "desc"=$6, tools=$7, materials=$8, steps=$9, popularity=$10, author=$11, published_on=$12 WHERE id=$13',
+          [
+            name,
+            latinName,
+            category,
+            wateringFreq,
+            growthEst,
+            desc,
+            tools,
+            materials,
+            steps,
+            popularity,
+            author,
+            publishedOn,
+            id,
+          ],
+        );
+      }
+
+      if (result) {
+        response = h.response({
+          code: 200,
+          status: 'OK',
+          message: 'Plant has been edited successfully',
+        });
+
+        response.code(200);
+      } else {
+        response = h.response({
+          code: 500,
+          status: 'Internal Server Error',
+          message: 'Plant cannot be edited',
+        });
+
+        response.code(500);
+      }
+    } else {
+      response = h.response({
+        code: 404,
+        status: 'Not Found',
+        message: 'Plant is not found',
+      });
+
+      response.code(404);
+    }
+  } catch (err) {
+    response = h.response({
+      code: 400,
+      status: 'Bad Request',
+      message: 'error',
+    });
+
+    response.code(400);
+
+    console.log(err);
+  }
+
+  return response;
+};
+
+module.exports = {
+  getPlants, getPlantDetails, uploadPlant, updatePlant,
+};
