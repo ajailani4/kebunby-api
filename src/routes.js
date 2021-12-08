@@ -1,5 +1,6 @@
 const { register, login } = require('./handler/identity-handler');
 const { getPlants, getPlantDetails, uploadPlant } = require('./handler/plant-handler');
+const { getPlantsByCategoryId } = require('./handler/category-handler');
 
 const prefix = '/api/v1';
 
@@ -43,6 +44,13 @@ const routes = [
       },
     },
     handler: uploadPlant,
+  },
+  // Get Plants by Category
+  {
+    method: 'GET',
+    path: `${prefix}/categories/{id}/plants`,
+    config: { auth: 'jwt' },
+    handler: getPlantsByCategoryId,
   },
 ];
 
