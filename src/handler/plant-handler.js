@@ -142,6 +142,7 @@ const uploadPlant = async (request, h) => {
 
     const publishedOn = new Date().toISOString().slice(0, 10);
 
+    // Insert new plant
     const result = await pool.query(
       'INSERT INTO public."plant" (name, latin_name, image, category, watering_freq, growth_est, "desc", tools, materials, steps, popularity, author, published_on) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *',
       [
@@ -232,6 +233,7 @@ const updatePlant = async (request, h) => {
       materials = materials.split(', ');
       steps = steps.split(', ');
 
+      // Update plant
       if (image.length > 0) {
         const uploadImageResult = await uploadImage('plant_images', image);
         image = uploadImageResult.url;
@@ -317,6 +319,58 @@ const updatePlant = async (request, h) => {
   return response;
 };
 
+const deletePlant = async (request, h) => {
+  const { id } = request.params;
+  let response = '';
+
+  try {
+    if (await isPlantExist(id)) {
+      const result = await pool.query(
+        'DELETE FROM public."plant" WHERE id=$1',
+        [id],
+      );
+
+      if (result) {
+        response = h.response({
+          code: 200,
+          status: 'OK',
+          message: 'Plant has been deleted',
+        });
+
+        response.code(200);
+      } else {
+        response = h.response({
+          code: 500,
+          status: 'Internal Server Error',
+          message: 'Plant cannot be deleted',
+        });
+
+        response.code(500);
+      }
+    } else {
+      response = h.response({
+        code: 404,
+        status: 'Not Found',
+        message: 'Plant is not found',
+      });
+
+      response.code(404);
+    }
+  } catch (err) {
+    response = h.response({
+      code: 400,
+      status: 'Bad Request',
+      message: 'error',
+    });
+
+    response.code(400);
+
+    console.log(err);
+  }
+
+  return response;
+};
+
 module.exports = {
-  getPlants, getPlantDetails, uploadPlant, updatePlant,
+  getPlants, getPlantDetails, uploadPlant, updatePlant, deletePlant,
 };
