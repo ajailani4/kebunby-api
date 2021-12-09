@@ -1,6 +1,13 @@
 const { register, login } = require('./handler/identity-handler');
+<<<<<<< HEAD
 const { getPlants, getPlantDetails, uploadPlant } = require('./handler/plant-handler');
 const { getPlantsByUsername } = require('./handler/user-handler');
+=======
+const {
+  getPlants, getPlantDetails, uploadPlant, updatePlant, deletePlant,
+} = require('./handler/plant-handler');
+const { getPlantsByCategoryId } = require('./handler/category-handler');
+>>>>>>> 1b9d8899f1b46c3939b5b0e5c90aeb7fe8128f74
 
 const prefix = '/api/v1';
 
@@ -19,7 +26,7 @@ const routes = [
     config: { auth: false },
     handler: login,
   },
-  // Get Plants (All Plants, Trending Plants, Plants by Category, Plants by Search Query)
+  // Get Plants (All Plants, Trending Plants, and Plants by Search Query)
   {
     method: 'GET',
     path: `${prefix}/plants`,
@@ -45,6 +52,7 @@ const routes = [
     },
     handler: uploadPlant,
   },
+<<<<<<< HEAD
 
   {
     method: 'GET',
@@ -53,6 +61,34 @@ const routes = [
     handler: getPlantsByUsername,
   },
 
+=======
+  // Update Plant
+  {
+    method: 'PUT',
+    path: `${prefix}/plants/{id}`,
+    config: {
+      auth: 'jwt',
+      payload: {
+        multipart: true,
+      },
+    },
+    handler: updatePlant,
+  },
+  // Delete Plant
+  {
+    method: 'DELETE',
+    path: `${prefix}/plants/{id}`,
+    config: { auth: 'jwt' },
+    handler: deletePlant,
+  },
+  // Get Plants by Category
+  {
+    method: 'GET',
+    path: `${prefix}/categories/{id}/plants`,
+    config: { auth: 'jwt' },
+    handler: getPlantsByCategoryId,
+  },
+>>>>>>> 1b9d8899f1b46c3939b5b0e5c90aeb7fe8128f74
 ];
 
 

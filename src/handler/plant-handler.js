@@ -1,9 +1,9 @@
 const pool = require('../config/db-config');
-const { uploadImage } = require('../util/cloudinary-util');
+const { uploadImage, deleteImage } = require('../util/cloudinary-util');
 
 const getPlants = async(request, h) => {
   let { page, size } = request.query;
-  const { isTrending, category, searchQuery } = request.query;
+  const { isTrending, searchQuery } = request.query;
   let response = '';
   let result = '';
 
@@ -12,7 +12,7 @@ const getPlants = async(request, h) => {
     size = size || 10;
 
     // Get all plants
-    if ((!isTrending || isTrending === 'false') && !category && !searchQuery) {
+    if ((!isTrending || isTrending === 'false') && !searchQuery) {
       result = await pool.query(
         'SELECT * FROM public."plant" OFFSET $1 LIMIT $2', [(page - 1) * size, size],
       );
@@ -22,13 +22,6 @@ const getPlants = async(request, h) => {
     if (isTrending === 'true') {
       result = await pool.query(
         'SELECT * FROM public."plant" ORDER BY popularity DESC OFFSET $1 LIMIT $2', [(page - 1) * size, size],
-      );
-    }
-
-    // Get plants by category
-    if (category) {
-      result = await pool.query(
-        'SELECT * FROM public."plant" WHERE category=$1 OFFSET $2 LIMIT $3', [category, (page - 1) * size, size],
       );
     }
 
@@ -129,6 +122,7 @@ const uploadPlant = async(request, h) => {
   const {
     name,
     latinName,
+    category,
     wateringFreq,
     growthEst,
     desc,
@@ -136,7 +130,6 @@ const uploadPlant = async(request, h) => {
   } = request.payload;
   let {
     image,
-    category,
     tools,
     materials,
     steps,
@@ -144,10 +137,9 @@ const uploadPlant = async(request, h) => {
   let response = '';
 
   try {
+    // Upload image to Cloudinary
     const uploadImageResult = await uploadImage('plant_images', image);
     image = uploadImageResult.url;
-
-    category = Number(category);
 
     // Convert tools, materials, and steps to be array
     tools = tools.split(', ');
@@ -156,6 +148,7 @@ const uploadPlant = async(request, h) => {
 
     const publishedOn = new Date().toISOString().slice(0, 10);
 
+    // Insert new plant to database
     const result = await pool.query(
       'INSERT INTO public."plant" (name, latin_name, image, category, watering_freq, growth_est, "desc", tools, materials, steps, popularity, author, published_on) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *', [
         name,
@@ -206,4 +199,206 @@ const uploadPlant = async(request, h) => {
   return response;
 };
 
-module.exports = { getPlants, getPlantDetails, uploadPlant };
+const isPlantExist = async(id) => {
+  let isExist = false;
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM public."plant" WHERE id=$1', [id],
+    );
+
+    if (result.rows[0]) {
+      isExist = true;
+    } else {
+      isExist = false;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+
+  return isExist;
+};
+
+const updatePlant = async(request, h) => {
+  const { id } = request.params;
+  const {
+    name,
+    latinName,
+    category,
+    wateringFreq,
+    growthEst,
+    desc,
+    popularity,
+    author,
+    publishedOn,
+  } = request.payload;
+  let {
+    image,
+    tools,
+    materials,
+    steps,
+  } = request.payload;
+  let result = '';
+  let response = '';
+
+  try {
+    if (await isPlantExist(id)) {
+      // Convert tools, materials, and steps to be array
+      tools = tools.split(', ');
+      materials = materials.split(', ');
+      steps = steps.split(', ');
+
+      // Update plant from database
+      if (image.length > 0) {
+        const uploadImageResult = await uploadImage('plant_images', image);
+        image = uploadImageResult.url;
+
+        result = await pool.query(
+          'UPDATE public."plant" SET "name"=$1, latin_name=$2, image=$3, category=$4, watering_freq=$5, growth_est=$6, "desc"=$7, tools=$8, materials=$9, steps=$10, popularity=$11, author=$12, published_on=$13 WHERE id=$14', [
+            name,
+            latinName,
+            image,
+            category,
+            wateringFreq,
+            growthEst,
+            desc,
+            tools,
+            materials,
+            steps,
+            popularity,
+            author,
+            publishedOn,
+            id,
+          ],
+        );
+      } else {
+        result = await pool.query(
+          'UPDATE public."plant" SET "name"=$1, latin_name=$2, category=$3, watering_freq=$4, growth_est=$5, "desc"=$6, tools=$7, materials=$8, steps=$9, popularity=$10, author=$11, published_on=$12 WHERE id=$13', [
+            name,
+            latinName,
+            category,
+            wateringFreq,
+            growthEst,
+            desc,
+            tools,
+            materials,
+            steps,
+            popularity,
+            author,
+            publishedOn,
+            id,
+          ],
+        );
+      }
+
+      if (result) {
+        response = h.response({
+          code: 200,
+          status: 'OK',
+          message: 'Plant has been edited successfully',
+        });
+
+        response.code(200);
+      } else {
+        response = h.response({
+          code: 500,
+          status: 'Internal Server Error',
+          message: 'Plant cannot be edited',
+        });
+
+        response.code(500);
+      }
+    } else {
+      response = h.response({
+        code: 404,
+        status: 'Not Found',
+        message: 'Plant is not found',
+      });
+
+      response.code(404);
+    }
+  } catch (err) {
+    response = h.response({
+      code: 400,
+      status: 'Bad Request',
+      message: 'error',
+    });
+
+    response.code(400);
+
+    console.log(err);
+  }
+
+  return response;
+};
+
+const deletePlant = async(request, h) => {
+  const { id } = request.params;
+  let result = '';
+  let response = '';
+
+  try {
+    if (await isPlantExist(id)) {
+      // Get image url
+      result = await pool.query(
+        'SELECT image FROM public."plant" WHERE id=$1', [id],
+      );
+
+      // Delete image from Cloudinary
+      const pathNames = result.rows[0].image.split('/');
+      const publicId = `${pathNames[pathNames.length - 2]}/${pathNames[pathNames.length - 1]}`.split('.')[0];
+      await deleteImage(publicId);
+
+      // Delete plant from database
+      result = await pool.query(
+        'DELETE FROM public."plant" WHERE id=$1', [id],
+      );
+
+      if (result) {
+        response = h.response({
+          code: 200,
+          status: 'OK',
+          message: 'Plant has been deleted',
+        });
+
+        response.code(200);
+      } else {
+        response = h.response({
+          code: 500,
+          status: 'Internal Server Error',
+          message: 'Plant cannot be deleted',
+        });
+
+        response.code(500);
+      }
+    } else {
+      response = h.response({
+        code: 404,
+        status: 'Not Found',
+        message: 'Plant is not found',
+      });
+
+      response.code(404);
+    }
+  } catch (err) {
+    response = h.response({
+      code: 400,
+      status: 'Bad Request',
+      message: 'error',
+    });
+
+    response.code(400);
+
+    console.log(err);
+  }
+
+  return response;
+};
+
+module.exports = {
+  getPlants,
+  getPlantDetails,
+  uploadPlant,
+  updatePlant,
+  deletePlant,
+};
