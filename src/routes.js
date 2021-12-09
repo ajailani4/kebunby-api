@@ -1,13 +1,12 @@
 const { register, login } = require('./handler/identity-handler');
-<<<<<<< HEAD
-const { getPlants, getPlantDetails, uploadPlant } = require('./handler/plant-handler');
-const { getPlantsByUsername } = require('./handler/user-handler');
-=======
 const {
-  getPlants, getPlantDetails, uploadPlant, updatePlant, deletePlant,
+  getPlants,
+  getPlantDetails,
+  uploadPlant,
+  updatePlant,
+  deletePlant,
 } = require('./handler/plant-handler');
 const { getPlantsByCategoryId } = require('./handler/category-handler');
->>>>>>> 1b9d8899f1b46c3939b5b0e5c90aeb7fe8128f74
 
 const prefix = '/api/v1';
 
@@ -52,16 +51,6 @@ const routes = [
     },
     handler: uploadPlant,
   },
-<<<<<<< HEAD
-
-  {
-    method: 'GET',
-    path: `${prefix}/users/{username}/plants`,
-    config: { auth: 'jwt' },
-    handler: getPlantsByUsername,
-  },
-
-=======
   // Update Plant
   {
     method: 'PUT',
@@ -88,7 +77,6 @@ const routes = [
     config: { auth: 'jwt' },
     handler: getPlantsByCategoryId,
   },
->>>>>>> 1b9d8899f1b46c3939b5b0e5c90aeb7fe8128f74
 ];
 
 
