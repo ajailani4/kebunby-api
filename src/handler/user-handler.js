@@ -1,21 +1,31 @@
-const pool = require('../db');
+const pool = require('../config/db-config');
 
-const getPlanting = async(request, h) => {
+const getPlantsByUsername = async(request, h) => {
   const { username } = request.params;
   const { isPlanting, isPlanted, isFavorited } = request.query;
+  let { page, size } = request.query;
   let response = '';
   let result = '';
   try {
+    page = page || 1;
+    size = size || 10;
+
     // Get Planting by username
+
+    if ((!isPlanting || isPlanting === 'false') && (!isPlanted || isPlanted === 'false') && (!isFavorited || isFavorited === 'false')) {
+      result = await pool.query(
+        'SELECT * FROM public."plant" WHERE author = $1 OFFSET $2 LIMIT $3', [username, (page - 1) * size, size],
+      );
+    }
     if (isPlanting === 'true') {
       result = await pool.query(
-        'SELECT * FROM public. "planting" INNER JOIN public."plant" ON plant = "plant".id WHERE "user" = \'george_z\';', [username],
+        'SELECT * FROM public."planting" INNER JOIN public."plant" ON plant = "plant".id WHERE "user" = $1 OFFSET $2 LIMIT $3', [username, (page - 1) * size, size],
       );
     }
     // Get plants by category
     if (isPlanted === 'true') {
       result = await pool.query(
-        'SELECT * FROM public."planted" INNER JOIN public."plant" ON plant = "plant".id WHERE "user" = $1;', [username],
+        'SELECT * FROM public."planted" INNER JOIN public."plant" ON plant = "plant".id WHERE "user" = $1 OFFSET $2 LIMIT $3', [username, (page - 1) * size, size],
       );
     }
 
@@ -52,4 +62,4 @@ const getPlanting = async(request, h) => {
   return response;
 };
 
-module.exports = { getPlanting };
+module.exports = { getPlantsByUsername };

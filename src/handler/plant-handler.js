@@ -1,4 +1,5 @@
-const pool = require('../db');
+const pool = require('../config/db-config');
+const { uploadImage } = require('../util/cloudinary-util');
 
 const getPlants = async(request, h) => {
   let { page, size } = request.query;
@@ -34,7 +35,7 @@ const getPlants = async(request, h) => {
     // Get plants by search query
     if (searchQuery) {
       result = await pool.query(
-        `SELECT * FROM public."plant" WHERE name LIKE '%${searchQuery}%' OFFSET $1 LIMIT $2`, [(page - 1) * size, size],
+        `SELECT * FROM public."plant" WHERE name ILIKE '%${searchQuery}%' OFFSET $1 LIMIT $2`, [(page - 1) * size, size],
       );
     }
 
@@ -124,4 +125,85 @@ const getPlantDetails = async(request, h) => {
   return response;
 };
 
-module.exports = { getPlants, getPlantDetails };
+const uploadPlant = async(request, h) => {
+  const {
+    name,
+    latinName,
+    wateringFreq,
+    growthEst,
+    desc,
+    author,
+  } = request.payload;
+  let {
+    image,
+    category,
+    tools,
+    materials,
+    steps,
+  } = request.payload;
+  let response = '';
+
+  try {
+    const uploadImageResult = await uploadImage('plant_images', image);
+    image = uploadImageResult.url;
+
+    category = Number(category);
+
+    // Convert tools, materials, and steps to be array
+    tools = tools.split(', ');
+    materials = materials.split(', ');
+    steps = steps.split(', ');
+
+    const publishedOn = new Date().toISOString().slice(0, 10);
+
+    const result = await pool.query(
+      'INSERT INTO public."plant" (name, latin_name, image, category, watering_freq, growth_est, "desc", tools, materials, steps, popularity, author, published_on) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *', [
+        name,
+        latinName,
+        image,
+        category,
+        wateringFreq,
+        growthEst,
+        desc,
+        tools,
+        materials,
+        steps,
+        0,
+        author,
+        publishedOn,
+      ],
+    );
+
+    if (result) {
+      response = h.response({
+        code: 201,
+        status: 'Created',
+        message: 'New plant has been added successfully',
+      });
+
+      response.code(201);
+    } else {
+      response = h.response({
+        code: 500,
+        status: 'Internal Server Error',
+        message: 'New plant cannot be added',
+      });
+
+      response.code(500);
+    }
+  } catch (err) {
+    response = h.response({
+      code: 400,
+      status: 'Bad Request',
+      message: 'error',
+    });
+
+    response.code(400);
+
+    console.log(err);
+  }
+
+  return response;
+};
+
+module.exports = { getPlants, getPlantDetails, uploadPlant };
