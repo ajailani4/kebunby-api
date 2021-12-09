@@ -1,6 +1,6 @@
 const { register, login } = require('./handler/identity-handler');
 const {
-  getPlants, getPlantDetails, uploadPlant, updatePlant,
+  getPlants, getPlantDetails, uploadPlant, updatePlant, deletePlant,
 } = require('./handler/plant-handler');
 const { getPlantsByCategoryId } = require('./handler/category-handler');
 
@@ -58,6 +58,13 @@ const routes = [
       },
     },
     handler: updatePlant,
+  },
+  // Delete Plant
+  {
+    method: 'DELETE',
+    path: `${prefix}/plants/{id}`,
+    config: { auth: 'jwt' },
+    handler: deletePlant,
   },
   // Get Plants by Category
   {
