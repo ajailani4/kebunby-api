@@ -1,5 +1,7 @@
 const { register, login } = require('./handler/identity-handler');
-const { getPlants, getPlantDetails, uploadPlant } = require('./handler/plant-handler');
+const {
+  getPlants, getPlantDetails, uploadPlant, updatePlant,
+} = require('./handler/plant-handler');
 const { getPlantsByCategoryId } = require('./handler/category-handler');
 
 const prefix = '/api/v1';
@@ -19,7 +21,7 @@ const routes = [
     config: { auth: false },
     handler: login,
   },
-  // Get Plants (All Plants, Trending Plants, Plants by Category, Plants by Search Query)
+  // Get Plants (All Plants, Trending Plants, and Plants by Search Query)
   {
     method: 'GET',
     path: `${prefix}/plants`,
@@ -44,6 +46,18 @@ const routes = [
       },
     },
     handler: uploadPlant,
+  },
+  // Update Plant
+  {
+    method: 'PUT',
+    path: `${prefix}/plants/{id}`,
+    config: {
+      auth: 'jwt',
+      payload: {
+        multipart: true,
+      },
+    },
+    handler: updatePlant,
   },
   // Get Plants by Category
   {
