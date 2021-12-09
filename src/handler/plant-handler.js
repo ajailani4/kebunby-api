@@ -1,7 +1,7 @@
 const pool = require('../config/db-config');
 const { uploadImage, deleteImage } = require('../util/cloudinary-util');
 
-const getPlants = async (request, h) => {
+const getPlants = async(request, h) => {
   let { page, size } = request.query;
   const { isTrending, searchQuery } = request.query;
   let response = '';
@@ -14,24 +14,21 @@ const getPlants = async (request, h) => {
     // Get all plants
     if ((!isTrending || isTrending === 'false') && !searchQuery) {
       result = await pool.query(
-        'SELECT * FROM public."plant" OFFSET $1 LIMIT $2',
-        [(page - 1) * size, size],
+        'SELECT * FROM public."plant" OFFSET $1 LIMIT $2', [(page - 1) * size, size],
       );
     }
 
     // Get trending plants
     if (isTrending === 'true') {
       result = await pool.query(
-        'SELECT * FROM public."plant" ORDER BY popularity DESC OFFSET $1 LIMIT $2',
-        [(page - 1) * size, size],
+        'SELECT * FROM public."plant" ORDER BY popularity DESC OFFSET $1 LIMIT $2', [(page - 1) * size, size],
       );
     }
 
     // Get plants by search query
     if (searchQuery) {
       result = await pool.query(
-        `SELECT * FROM public."plant" WHERE name ILIKE '%${searchQuery}%' OFFSET $1 LIMIT $2`,
-        [(page - 1) * size, size],
+        `SELECT * FROM public."plant" WHERE name ILIKE '%${searchQuery}%' OFFSET $1 LIMIT $2`, [(page - 1) * size, size],
       );
     }
 
@@ -63,14 +60,13 @@ const getPlants = async (request, h) => {
   return response;
 };
 
-const getPlantDetails = async (request, h) => {
+const getPlantDetails = async(request, h) => {
   const { id } = request.params;
   let response = '';
 
   try {
     const result = await pool.query(
-      'SELECT * FROM public."plant" WHERE id=$1',
-      [id],
+      'SELECT * FROM public."plant" WHERE id=$1', [id],
     );
 
     if (result.rows[0]) {
@@ -122,12 +118,21 @@ const getPlantDetails = async (request, h) => {
   return response;
 };
 
-const uploadPlant = async (request, h) => {
+const uploadPlant = async(request, h) => {
   const {
-    name, latinName, category, wateringFreq, growthEst, desc, author,
+    name,
+    latinName,
+    category,
+    wateringFreq,
+    growthEst,
+    desc,
+    author,
   } = request.payload;
   let {
-    image, tools, materials, steps,
+    image,
+    tools,
+    materials,
+    steps,
   } = request.payload;
   let response = '';
 
@@ -145,8 +150,7 @@ const uploadPlant = async (request, h) => {
 
     // Insert new plant to database
     const result = await pool.query(
-      'INSERT INTO public."plant" (name, latin_name, image, category, watering_freq, growth_est, "desc", tools, materials, steps, popularity, author, published_on) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *',
-      [
+      'INSERT INTO public."plant" (name, latin_name, image, category, watering_freq, growth_est, "desc", tools, materials, steps, popularity, author, published_on) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *', [
         name,
         latinName,
         image,
@@ -195,13 +199,12 @@ const uploadPlant = async (request, h) => {
   return response;
 };
 
-const isPlantExist = async (id) => {
+const isPlantExist = async(id) => {
   let isExist = false;
 
   try {
     const result = await pool.query(
-      'SELECT * FROM public."plant" WHERE id=$1',
-      [id],
+      'SELECT * FROM public."plant" WHERE id=$1', [id],
     );
 
     if (result.rows[0]) {
@@ -216,13 +219,24 @@ const isPlantExist = async (id) => {
   return isExist;
 };
 
-const updatePlant = async (request, h) => {
+const updatePlant = async(request, h) => {
   const { id } = request.params;
   const {
-    name, latinName, category, wateringFreq, growthEst, desc, popularity, author, publishedOn,
+    name,
+    latinName,
+    category,
+    wateringFreq,
+    growthEst,
+    desc,
+    popularity,
+    author,
+    publishedOn,
   } = request.payload;
   let {
-    image, tools, materials, steps,
+    image,
+    tools,
+    materials,
+    steps,
   } = request.payload;
   let result = '';
   let response = '';
@@ -240,8 +254,7 @@ const updatePlant = async (request, h) => {
         image = uploadImageResult.url;
 
         result = await pool.query(
-          'UPDATE public."plant" SET "name"=$1, latin_name=$2, image=$3, category=$4, watering_freq=$5, growth_est=$6, "desc"=$7, tools=$8, materials=$9, steps=$10, popularity=$11, author=$12, published_on=$13 WHERE id=$14',
-          [
+          'UPDATE public."plant" SET "name"=$1, latin_name=$2, image=$3, category=$4, watering_freq=$5, growth_est=$6, "desc"=$7, tools=$8, materials=$9, steps=$10, popularity=$11, author=$12, published_on=$13 WHERE id=$14', [
             name,
             latinName,
             image,
@@ -260,8 +273,7 @@ const updatePlant = async (request, h) => {
         );
       } else {
         result = await pool.query(
-          'UPDATE public."plant" SET "name"=$1, latin_name=$2, category=$3, watering_freq=$4, growth_est=$5, "desc"=$6, tools=$7, materials=$8, steps=$9, popularity=$10, author=$11, published_on=$12 WHERE id=$13',
-          [
+          'UPDATE public."plant" SET "name"=$1, latin_name=$2, category=$3, watering_freq=$4, growth_est=$5, "desc"=$6, tools=$7, materials=$8, steps=$9, popularity=$10, author=$11, published_on=$12 WHERE id=$13', [
             name,
             latinName,
             category,
@@ -320,7 +332,7 @@ const updatePlant = async (request, h) => {
   return response;
 };
 
-const deletePlant = async (request, h) => {
+const deletePlant = async(request, h) => {
   const { id } = request.params;
   let result = '';
   let response = '';
@@ -329,8 +341,7 @@ const deletePlant = async (request, h) => {
     if (await isPlantExist(id)) {
       // Get image url
       result = await pool.query(
-        'SELECT image FROM public."plant" WHERE id=$1',
-        [id],
+        'SELECT image FROM public."plant" WHERE id=$1', [id],
       );
 
       // Delete image from Cloudinary
@@ -340,8 +351,7 @@ const deletePlant = async (request, h) => {
 
       // Delete plant from database
       result = await pool.query(
-        'DELETE FROM public."plant" WHERE id=$1',
-        [id],
+        'DELETE FROM public."plant" WHERE id=$1', [id],
       );
 
       if (result) {
@@ -386,5 +396,9 @@ const deletePlant = async (request, h) => {
 };
 
 module.exports = {
-  getPlants, getPlantDetails, uploadPlant, updatePlant, deletePlant,
+  getPlants,
+  getPlantDetails,
+  uploadPlant,
+  updatePlant,
+  deletePlant,
 };

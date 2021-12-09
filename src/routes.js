@@ -1,6 +1,10 @@
 const { register, login } = require('./handler/identity-handler');
 const {
-  getPlants, getPlantDetails, uploadPlant, updatePlant, deletePlant,
+  getPlants,
+  getPlantDetails,
+  uploadPlant,
+  updatePlant,
+  deletePlant,
 } = require('./handler/plant-handler');
 const { getPlantsByCategoryId } = require('./handler/category-handler');
 
@@ -74,5 +78,6 @@ const routes = [
     handler: getPlantsByCategoryId,
   },
 ];
+
 
 module.exports = routes;
