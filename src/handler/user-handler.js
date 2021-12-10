@@ -62,4 +62,39 @@ const getPlantsByUsername = async(request, h) => {
   return response;
 };
 
-module.exports = { getPlantsByUsername };
+const getUserProfile = async(request, h) => {
+  const { username } = request.params;
+  let response = '';
+
+  try {
+    result = await pool.query(
+      'SELECT * FROM public."user" WHERE username = $1 ', [username],
+    );
+
+    response = h.response({
+      code: 200,
+      status: 'OK',
+      data: result.rows.map((profile) => ({
+        username: profile.username,
+        email: profile.email,
+        name: profile.name,
+        avatar: profile.avatar,
+      })),
+    });
+
+    response.code(200);
+  } catch (err) {
+    response = h.response({
+      code: 400,
+      status: 'Bad Request',
+      message: 'error',
+    });
+
+    response.code(400);
+
+    console.log(err);
+  }
+  return response;
+};
+
+module.exports = { getPlantsByUsername, getUserProfile };
