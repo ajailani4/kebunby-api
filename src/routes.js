@@ -7,6 +7,7 @@ const {
   deletePlant,
 } = require('./handler/plant-handler');
 const { getPlantsByCategoryId, getPlantCategories } = require('./handler/category-handler');
+const { getPlantsByUsername, getUserProfile } = require('./handler/user-handler');
 
 const prefix = '/api/v1';
 
@@ -39,6 +40,15 @@ const routes = [
     config: { auth: 'jwt' },
     handler: getPlantDetails,
   },
+
+  // Get Plants by Username
+  {
+    method: 'GET',
+    path: `${prefix}/users/{username}/plants`,
+    config: { auth: 'jwt' },
+    handler: getPlantsByUsername,
+  },
+
   // Upload Plant
   {
     method: 'POST',
@@ -83,6 +93,14 @@ const routes = [
     path: `${prefix}/categories`,
     config: { auth: 'jwt' },
     handler: getPlantCategories,
+  },
+
+  // Get User Profile
+  {
+    method: 'GET',
+    path: `${prefix}/users/{username}`,
+    config: { auth: 'jwt' },
+    handler: getUserProfile,
   },
 ];
 
