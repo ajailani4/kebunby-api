@@ -89,7 +89,7 @@ const getUserProfile = async(request, h) => {
       response = h.response({
         code: 404,
         status: 'Not Found',
-        message: 'Plant is not found',
+        message: 'User is not found',
       });
 
       response.code(404);
