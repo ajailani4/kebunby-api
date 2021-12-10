@@ -6,7 +6,7 @@ const {
   updatePlant,
   deletePlant,
 } = require('./handler/plant-handler');
-const { getPlantsByCategoryId } = require('./handler/category-handler');
+const { getPlantsByCategoryId, getPlantCategories } = require('./handler/category-handler');
 
 const prefix = '/api/v1';
 
@@ -77,7 +77,13 @@ const routes = [
     config: { auth: 'jwt' },
     handler: getPlantsByCategoryId,
   },
+  // Get Plants Categories
+  {
+    method: 'GET',
+    path: `${prefix}/categories`,
+    config: { auth: 'jwt' },
+    handler: getPlantCategories,
+  },
 ];
-
 
 module.exports = routes;
