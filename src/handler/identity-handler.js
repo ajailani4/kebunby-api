@@ -5,7 +5,7 @@ const { generateJwt } = require('../util/jwt-util');
 
 const saltRounds = 10;
 
-const register = async(request, h) => {
+const register = async (request, h) => {
   const {
     username,
     email,
@@ -18,9 +18,7 @@ const register = async(request, h) => {
     // Hash user password
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    const result = await pool.query(
-      'INSERT INTO public."user" (username, email, password, name) VALUES ($1, $2, $3, $4) RETURNING *', [username, email, hashedPassword, name],
-    );
+    const result = await pool.query('INSERT INTO public."user" (username, email, password, name) VALUES ($1, $2, $3, $4) RETURNING *', [username, email, hashedPassword, name]);
 
     response = h.response({
       code: 201,
@@ -49,14 +47,12 @@ const register = async(request, h) => {
   return response;
 };
 
-const login = async(request, h) => {
+const login = async (request, h) => {
   const { username, password } = request.payload;
   let response = '';
 
   try {
-    const result = await pool.query(
-      'SELECT * FROM public."user" WHERE username=$1', [username],
-    );
+    const result = await pool.query('SELECT * FROM public."user" WHERE username=$1', [username]);
 
     if (result.rows[0]) {
       const hashedPassword = result.rows[0].password;
