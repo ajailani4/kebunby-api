@@ -12,27 +12,44 @@ const register = async (request, h) => {
     password,
     name,
   } = request.payload;
+  let result = '';
   let response = '';
 
   try {
-    // Hash user password
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    const result = await pool.query(
-      'INSERT INTO public."user" (username, email, password, name) VALUES ($1, $2, $3, $4) RETURNING *',
-      [username, email, hashedPassword, name],
+    // Check if username is exist or not
+    result = await pool.query(
+      'SELECT * FROM public."user" WHERE username=$1',
+      [username],
     );
 
-    response = h.response({
-      code: 201,
-      status: 'Created',
-      data: {
-        username: result.rows[0].username,
-        accessToken: generateJwt(jwt, username),
-      },
-    });
+    if (result.rows[0]) {
+      response = h.response({
+        code: 409,
+        status: 'Conflict',
+        message: 'Username is exist. Try another username!',
+      });
 
-    response.code(201);
+      response.code(409);
+    } else {
+      // Hash user password
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+      result = await pool.query(
+        'INSERT INTO public."user" (username, email, password, name) VALUES ($1, $2, $3, $4) RETURNING *',
+        [username, email, hashedPassword, name],
+      );
+
+      response = h.response({
+        code: 201,
+        status: 'Created',
+        data: {
+          username: result.rows[0].username,
+          accessToken: generateJwt(jwt, username),
+        },
+      });
+
+      response.code(201);
+    }
 
     return response;
   } catch (err) {
