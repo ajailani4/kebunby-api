@@ -6,26 +6,41 @@ const getPlantsByUsername = async (request, h) => {
   let { page, size } = request.query;
   let response = '';
   let result = '';
+
   try {
     page = page || 1;
     size = size || 10;
 
-    // Get Planting by username
-
+    // Get posts
     if ((!isPlanting || isPlanting === 'false') && (!isPlanted || isPlanted === 'false') && (!isFavorited || isFavorited === 'false')) {
-      result = await pool.query('SELECT * FROM public."plant" WHERE author = $1 OFFSET $2 LIMIT $3', [username, (page - 1) * size, size]);
-    }
-    if (isPlanting === 'true') {
-      result = await pool.query('SELECT * FROM public."planting" INNER JOIN public."plant" ON plant = "plant".id WHERE "user" = $1 OFFSET $2 LIMIT $3', [username, (page - 1) * size, size]);
-    }
-    // Get plants by category
-    if (isPlanted === 'true') {
-      result = await pool.query('SELECT * FROM public."planted" INNER JOIN public."plant" ON plant = "plant".id WHERE "user" = $1 OFFSET $2 LIMIT $3', [username, (page - 1) * size, size]);
+      result = await pool.query(
+        'SELECT * FROM public."plant" WHERE author = $1 OFFSET $2 LIMIT $3',
+        [username, (page - 1) * size, size],
+      );
     }
 
-    // Get plants by search query
+    // Get planting plants
+    if (isPlanting === 'true') {
+      result = await pool.query(
+        'SELECT * FROM public."planting" INNER JOIN public."plant" ON plant = "plant".id WHERE "user" = $1 OFFSET $2 LIMIT $3',
+        [username, (page - 1) * size, size],
+      );
+    }
+
+    // Get planted plants
+    if (isPlanted === 'true') {
+      result = await pool.query(
+        'SELECT * FROM public."planted" INNER JOIN public."plant" ON plant = "plant".id WHERE "user" = $1 OFFSET $2 LIMIT $3',
+        [username, (page - 1) * size, size],
+      );
+    }
+
+    // Get favorite plants
     if (isFavorited === 'true') {
-      result = await pool.query('SELECT * FROM public."favorite" INNER JOIN public."plant" ON plant = "plant".id WHERE "user" = $1;', [username]);
+      result = await pool.query(
+        'SELECT * FROM public."favorite" INNER JOIN public."plant" ON plant = "plant".id WHERE "user" = $1;',
+        [username],
+      );
     }
 
     response = h.response({
@@ -40,6 +55,7 @@ const getPlantsByUsername = async (request, h) => {
         popularity: plant.popularity,
       })),
     });
+
     response.code(200);
   } catch (err) {
     response = h.response({
@@ -52,6 +68,7 @@ const getPlantsByUsername = async (request, h) => {
 
     console.log(err);
   }
+
   return response;
 };
 
@@ -60,7 +77,10 @@ const getUserProfile = async (request, h) => {
   let response = '';
 
   try {
-    const result = await pool.query('SELECT * FROM public."user" WHERE username = $1 ', [username]);
+    const result = await pool.query(
+      'SELECT * FROM public."user" WHERE username = $1',
+      [username],
+    );
 
     if (result.rows[0]) {
       const profile = result.rows[0];
@@ -75,6 +95,7 @@ const getUserProfile = async (request, h) => {
           avatar: profile.avatar,
         },
       });
+
       response.code(200);
     } else {
       response = h.response({

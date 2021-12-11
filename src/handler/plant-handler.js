@@ -13,17 +13,26 @@ const getPlants = async (request, h) => {
 
     // Get all plants
     if ((!isTrending || isTrending === 'false') && !searchQuery) {
-      result = await pool.query('SELECT * FROM public."plant" OFFSET $1 LIMIT $2', [(page - 1) * size, size]);
+      result = await pool.query(
+        'SELECT * FROM public."plant" OFFSET $1 LIMIT $2',
+        [(page - 1) * size, size],
+      );
     }
 
     // Get trending plants
     if (isTrending === 'true') {
-      result = await pool.query('SELECT * FROM public."plant" ORDER BY popularity DESC OFFSET $1 LIMIT $2', [(page - 1) * size, size]);
+      result = await pool.query(
+        'SELECT * FROM public."plant" ORDER BY popularity DESC OFFSET $1 LIMIT $2',
+        [(page - 1) * size, size],
+      );
     }
 
     // Get plants by search query
     if (searchQuery) {
-      result = await pool.query(`SELECT * FROM public."plant" WHERE name ILIKE '%${searchQuery}%' OFFSET $1 LIMIT $2`, [(page - 1) * size, size]);
+      result = await pool.query(
+        `SELECT * FROM public."plant" WHERE name ILIKE '%${searchQuery}%' OFFSET $1 LIMIT $2`,
+        [(page - 1) * size, size],
+      );
     }
 
     response = h.response({
@@ -59,7 +68,10 @@ const getPlantDetails = async (request, h) => {
   let response = '';
 
   try {
-    const result = await pool.query('SELECT * FROM public."plant" WHERE id=$1', [id]);
+    const result = await pool.query(
+      'SELECT * FROM public."plant" WHERE id=$1',
+      [id],
+    );
 
     if (result.rows[0]) {
       const plant = result.rows[0];
@@ -121,10 +133,7 @@ const uploadPlant = async (request, h) => {
     author,
   } = request.payload;
   let {
-    image,
-    tools,
-    materials,
-    steps,
+    image, tools, materials, steps,
   } = request.payload;
   let response = '';
 
@@ -141,21 +150,24 @@ const uploadPlant = async (request, h) => {
     const publishedOn = new Date().toISOString().slice(0, 10);
 
     // Insert new plant to database
-    const result = await pool.query('INSERT INTO public."plant" (name, latin_name, image, category, watering_freq, growth_est, "desc", tools, materials, steps, popularity, author, published_on) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *', [
-      name,
-      latinName,
-      image,
-      category,
-      wateringFreq,
-      growthEst,
-      desc,
-      tools,
-      materials,
-      steps,
-      0,
-      author,
-      publishedOn,
-    ]);
+    const result = await pool.query(
+      'INSERT INTO public."plant" (name, latin_name, image, category, watering_freq, growth_est, "desc", tools, materials, steps, popularity, author, published_on) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *',
+      [
+        name,
+        latinName,
+        image,
+        category,
+        wateringFreq,
+        growthEst,
+        desc,
+        tools,
+        materials,
+        steps,
+        0,
+        author,
+        publishedOn,
+      ],
+    );
 
     if (result) {
       response = h.response({
@@ -193,7 +205,10 @@ const isPlantExist = async (id) => {
   let isExist = false;
 
   try {
-    const result = await pool.query('SELECT * FROM public."plant" WHERE id=$1', [id]);
+    const result = await pool.query(
+      'SELECT * FROM public."plant" WHERE id=$1',
+      [id],
+    );
 
     if (result.rows[0]) {
       isExist = true;
@@ -221,10 +236,7 @@ const updatePlant = async (request, h) => {
     publishedOn,
   } = request.payload;
   let {
-    image,
-    tools,
-    materials,
-    steps,
+    image, tools, materials, steps,
   } = request.payload;
   let result = '';
   let response = '';
@@ -238,41 +250,49 @@ const updatePlant = async (request, h) => {
 
       // Update plant from database
       if (image.length > 0) {
+        // If plant image is changed
         const uploadImageResult = await uploadImage('plant_images', image);
         image = uploadImageResult.url;
 
-        result = await pool.query('UPDATE public."plant" SET "name"=$1, latin_name=$2, image=$3, category=$4, watering_freq=$5, growth_est=$6, "desc"=$7, tools=$8, materials=$9, steps=$10, popularity=$11, author=$12, published_on=$13 WHERE id=$14', [
-          name,
-          latinName,
-          image,
-          category,
-          wateringFreq,
-          growthEst,
-          desc,
-          tools,
-          materials,
-          steps,
-          popularity,
-          author,
-          publishedOn,
-          id,
-        ]);
+        result = await pool.query(
+          'UPDATE public."plant" SET "name"=$1, latin_name=$2, image=$3, category=$4, watering_freq=$5, growth_est=$6, "desc"=$7, tools=$8, materials=$9, steps=$10, popularity=$11, author=$12, published_on=$13 WHERE id=$14',
+          [
+            name,
+            latinName,
+            image,
+            category,
+            wateringFreq,
+            growthEst,
+            desc,
+            tools,
+            materials,
+            steps,
+            popularity,
+            author,
+            publishedOn,
+            id,
+          ],
+        );
       } else {
-        result = await pool.query('UPDATE public."plant" SET "name"=$1, latin_name=$2, category=$3, watering_freq=$4, growth_est=$5, "desc"=$6, tools=$7, materials=$8, steps=$9, popularity=$10, author=$11, published_on=$12 WHERE id=$13', [
-          name,
-          latinName,
-          category,
-          wateringFreq,
-          growthEst,
-          desc,
-          tools,
-          materials,
-          steps,
-          popularity,
-          author,
-          publishedOn,
-          id,
-        ]);
+        // If plant image is not changed
+        result = await pool.query(
+          'UPDATE public."plant" SET "name"=$1, latin_name=$2, category=$3, watering_freq=$4, growth_est=$5, "desc"=$6, tools=$7, materials=$8, steps=$9, popularity=$10, author=$11, published_on=$12 WHERE id=$13',
+          [
+            name,
+            latinName,
+            category,
+            wateringFreq,
+            growthEst,
+            desc,
+            tools,
+            materials,
+            steps,
+            popularity,
+            author,
+            publishedOn,
+            id,
+          ],
+        );
       }
 
       if (result) {
@@ -324,15 +344,21 @@ const deletePlant = async (request, h) => {
   try {
     if (await isPlantExist(id)) {
       // Get image url
-      result = await pool.query('SELECT image FROM public."plant" WHERE id=$1', [id]);
+      result = await pool.query(
+        'SELECT image FROM public."plant" WHERE id=$1',
+        [id],
+      );
 
-      // Delete image from Cloudinary
+      // Delete plant image from Cloudinary
       const pathNames = result.rows[0].image.split('/');
       const publicId = `${pathNames[pathNames.length - 2]}/${pathNames[pathNames.length - 1]}`.split('.')[0];
       await deleteImage(publicId);
 
       // Delete plant from database
-      result = await pool.query('DELETE FROM public."plant" WHERE id=$1', [id]);
+      result = await pool.query(
+        'DELETE FROM public."plant" WHERE id=$1',
+        [id],
+      );
 
       if (result) {
         response = h.response({

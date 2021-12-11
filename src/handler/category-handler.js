@@ -9,7 +9,10 @@ const getPlantsByCategoryId = async (request, h) => {
     page = page || 1;
     size = size || 10;
 
-    const result = await pool.query('SELECT * FROM public."plant" WHERE category=$1 OFFSET $2 LIMIT $3', [id, (page - 1) * size, size]);
+    const result = await pool.query(
+      'SELECT * FROM public."plant" WHERE category=$1 OFFSET $2 LIMIT $3',
+      [id, (page - 1) * size, size],
+    );
 
     response = h.response({
       code: 200,
@@ -43,9 +46,7 @@ const getPlantCategories = async (request, h) => {
   let response = '';
 
   try {
-    const result = await pool.query(
-      'SELECT * FROM public."category"',
-    );
+    const result = await pool.query('SELECT * FROM public."category"');
 
     response = h.response({
       code: 200,
@@ -68,6 +69,7 @@ const getPlantCategories = async (request, h) => {
 
     console.log(err);
   }
+
   return response;
 };
 
