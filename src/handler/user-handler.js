@@ -55,4 +55,48 @@ const getPlantsByUsername = async (request, h) => {
   return response;
 };
 
-module.exports = { getPlantsByUsername };
+const getUserProfile = async (request, h) => {
+  const { username } = request.params;
+  let response = '';
+
+  try {
+    const result = await pool.query('SELECT * FROM public."user" WHERE username = $1 ', [username]);
+
+    if (result.rows[0]) {
+      const profile = result.rows[0];
+
+      response = h.response({
+        ccode: 200,
+        status: 'OK',
+        data: {
+          username: profile.username,
+          email: profile.email,
+          name: profile.name,
+          avatar: profile.avatar,
+        },
+      });
+      response.code(200);
+    } else {
+      response = h.response({
+        code: 404,
+        status: 'Not Found',
+        message: 'User is not found',
+      });
+
+      response.code(404);
+    }
+  } catch (err) {
+    response = h.response({
+      code: 400,
+      status: 'Bad Request',
+      message: 'error',
+    });
+
+    response.code(400);
+
+    console.log(err);
+  }
+  return response;
+};
+
+module.exports = { getPlantsByUsername, getUserProfile };

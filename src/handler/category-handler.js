@@ -9,10 +9,7 @@ const getPlantsByCategoryId = async (request, h) => {
     page = page || 1;
     size = size || 10;
 
-    const result = await pool.query(
-      'SELECT * FROM public."plant" WHERE category=$1 OFFSET $2 LIMIT $3',
-      [id, (page - 1) * size, size],
-    );
+    const result = await pool.query('SELECT * FROM public."plant" WHERE category=$1 OFFSET $2 LIMIT $3', [id, (page - 1) * size, size]);
 
     response = h.response({
       code: 200,
@@ -42,4 +39,36 @@ const getPlantsByCategoryId = async (request, h) => {
   return response;
 };
 
-module.exports = { getPlantsByCategoryId };
+const getPlantCategories = async (request, h) => {
+  let response = '';
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM public."category"',
+    );
+
+    response = h.response({
+      code: 200,
+      status: 'OK',
+      data: result.rows.map((category) => ({
+        id: category.id,
+        category: category.category,
+      })),
+    });
+
+    response.code(200);
+  } catch (err) {
+    response = h.response({
+      code: 400,
+      status: 'Bad Request',
+      message: 'error',
+    });
+
+    response.code(400);
+
+    console.log(err);
+  }
+  return response;
+};
+
+module.exports = { getPlantsByCategoryId, getPlantCategories };
