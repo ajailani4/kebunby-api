@@ -8,17 +8,21 @@ const init = async () => {
   dotenv.config();
 
   const server = Hapi.server({
-    port: 5000,
-    host: 'localhost',
+    port: process.env.PORT || 80,
+    host: process.env.NODE_ENV !== 'production' ? 'localhost' : '0.0.0.0',
+    routes: {
+      cors: {
+        origin: ['*'],
+      },
+    },
   });
 
-  // Configure auth
+  // Configure auth using JWT
   await server.register(hapiAuthJWT);
 
   server.auth.strategy(
     'jwt',
     'jwt',
-
     {
       key: process.env.JWT_SECRET,
       validate: validateJwt,
