@@ -26,7 +26,7 @@ const register = async (request, h) => {
       response = h.response({
         code: 409,
         status: 'Conflict',
-        message: 'Username is exist. Try another username!',
+        message: 'Username already exists. Try another username!',
       });
 
       response.code(409);
