@@ -40,15 +40,6 @@ const routes = [
     config: { auth: 'jwt' },
     handler: getPlantDetails,
   },
-
-  // Get Plants by Username
-  {
-    method: 'GET',
-    path: `${prefix}/users/{username}/plants`,
-    config: { auth: 'jwt' },
-    handler: getPlantsByUsername,
-  },
-
   // Upload Plant
   {
     method: 'POST',
@@ -93,6 +84,13 @@ const routes = [
     path: `${prefix}/categories`,
     config: { auth: 'jwt' },
     handler: getPlantCategories,
+  },
+  // Get Plants by Username
+  {
+    method: 'GET',
+    path: `${prefix}/users/{username}/plants`,
+    config: { auth: 'jwt' },
+    handler: getPlantsByUsername,
   },
   // Get User Profile
   {
