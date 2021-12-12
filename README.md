@@ -8,11 +8,11 @@ This is a backend app for Kebunby. Kebunby is a platform that can be used for pe
 
 Base URL: ```https://kebunby-backend.herokuapp.com```
 
-All endpoints (except /register and /login) must use this authentication
+All endpoints (except /register and /login) must use this authorization
 
 Request :
 - Header :
-    - Authentication : "Bearer {token}"
+    - Authorization : "Bearer {token}"
 
 ### Register
 
