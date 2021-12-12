@@ -12,7 +12,7 @@ All endpoints (except /register and /login) must use this authentication
 
 Request :
 - Header :
-    - Authentication : "Bearer <token>"
+    - Authentication : "Bearer {token}"
 
 ### Register
 
