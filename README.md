@@ -16,7 +16,7 @@ Request :
 
 ### Register
 
-```http
+```
   POST /api/v1/register
 ```
 
@@ -33,7 +33,7 @@ Body :
 
 ### Login
 
-```http
+```
   POST /api/v1/login
 ```
 
@@ -48,7 +48,7 @@ Body :
 
 ### Get Plants (All Plants, Trending Plants, Searched Plants)
 
-```http
+```
   GET /api/v1/plants
 ```
 
@@ -61,13 +61,13 @@ Body :
 
 ### Get Plant Details
 
-```http
+```
   GET /api/v1/plants/{id}
 ```
 
 ### Upload Plant
 
-```http
+```
   POST /api/v1/plants
 ```
 
@@ -86,7 +86,7 @@ Body (form-data) :
 
 ### Update Plant
 
-```http
+```
   PUT /api/v1/plants/{id}
 ```
 
@@ -105,25 +105,25 @@ Body (form-data) :
 
 ### Delete Plant
 
-```http
+```
   DELETE /api/v1/plants/{id}
 ```
 
 ### Get Plants by Category
 
-```http
+```
   GET /api/v1/categories/{id}/plants
 ```
 
 ### Get Plant Categories
 
-```http
+```
   GET /api/v1/categories
 ```
 
 ### Get Plants by Username (Posts, Planting Plants, Planted Plants, Favorite Plants)
 
-```http
+```
   GET /api/v1/plants
 ```
 
@@ -137,7 +137,7 @@ Body (form-data) :
 
 ### Get User Profile
 
-```http
+```
   GET /api/v1/users/{username}
 ```
 ## Tech Stack
