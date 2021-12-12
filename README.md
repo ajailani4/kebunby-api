@@ -25,7 +25,7 @@ Body :
 ```json 
 {
     "username": "string, unique",
-	"email": "string",
+    "email": "string",
     "password": "string",
     "name": "string"
 }
