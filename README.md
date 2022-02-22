@@ -124,7 +124,7 @@ Body (form-data) :
 ### Get Plants by Username (Posts, Planting Plants, Planted Plants, Favorite Plants)
 
 ```
-  GET /api/v1/plants
+  GET /api/v1/users/{username}/plants
 ```
 
 | Parameter | Type     | Description                |
