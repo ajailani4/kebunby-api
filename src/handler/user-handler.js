@@ -22,7 +22,7 @@ const getPlantsByUsername = async (request, h) => {
     // Get planting plants
     if (isPlanting === 'true') {
       result = await pool.query(
-        'SELECT * FROM public."planting" INNER JOIN public."plant" ON plant = "plant".id WHERE "user" = $1 OFFSET $2 LIMIT $3',
+        'SELECT * FROM public."planting" INNER JOIN public."plant" ON plant = "plant".id WHERE "user" = $1 ORDER BY "planting".id DESC OFFSET $2 LIMIT $3',
         [username, (page - 1) * size, size],
       );
     }
@@ -30,7 +30,7 @@ const getPlantsByUsername = async (request, h) => {
     // Get planted plants
     if (isPlanted === 'true') {
       result = await pool.query(
-        'SELECT * FROM public."planted" INNER JOIN public."plant" ON plant = "plant".id WHERE "user" = $1 OFFSET $2 LIMIT $3',
+        'SELECT * FROM public."planted" INNER JOIN public."plant" ON plant = "plant".id WHERE "user" = $1 ORDER BY "planted".id DESC OFFSET $2 LIMIT $3',
         [username, (page - 1) * size, size],
       );
     }
