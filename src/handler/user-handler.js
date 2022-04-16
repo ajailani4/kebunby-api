@@ -339,6 +339,7 @@ const getUserProfile = async (request, h) => {
 
 module.exports = {
   getUserActivities,
+  isUserActivityExist,
   addUserActivity,
   deleteUserActivity,
   getUserProfile,
