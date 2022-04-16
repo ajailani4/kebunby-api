@@ -72,6 +72,130 @@ const getPlantsByUsername = async (request, h) => {
   return response;
 };
 
+const isUserPlantExist = async (username, plantId, isPlanting, isPlanted, isFavorited) => {
+  let isExist = false;
+  let query = '';
+
+  try {
+    if (isPlanting) {
+      query = 'SELECT * FROM public."planting" WHERE "user"=$1 AND plant=$2';
+    } else if (isPlanted) {
+      query = 'SELECT * FROM public."planted" WHERE "user"=$1 AND plant=$2';
+    } else if (isFavorited) {
+      query = 'SELECT * FROM public."favorite" WHERE "user"=$1 AND plant=$2';
+    }
+
+    const result = await pool.query(
+      query,
+      [username, plantId],
+    );
+
+    if (result.rows[0]) {
+      isExist = true;
+    } else {
+      isExist = false;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+
+  return isExist;
+};
+
+const addPlantByUsername = async (request, h) => {
+  const { username } = request.params;
+  const { plantId } = request.payload;
+  const { isPlanting, isPlanted, isFavorited } = request.query;
+  let result = '';
+  let response = '';
+  let isAdded = false;
+
+  try {
+    if (isPlanting) {
+      if (await isUserPlantExist(username, plantId, true, false, false)) {
+        response = h.response({
+          code: 409,
+          status: 'Conflict',
+          message: 'Plant already exists',
+        });
+
+        response.code(409);
+      } else {
+        result = await pool.query(
+          'INSERT INTO public."planting" ("user", plant) VALUES ($1, $2) RETURNING *',
+          [username, plantId],
+        );
+
+        isAdded = true;
+      }
+    } else if (isPlanted) {
+      if (await isUserPlantExist(username, plantId, false, true, false)) {
+        response = h.response({
+          code: 409,
+          status: 'Conflict',
+          message: 'Plant already exists',
+        });
+
+        response.code(409);
+      } else {
+        result = await pool.query(
+          'INSERT INTO public."planted" ("user", plant) VALUES ($1, $2) RETURNING *',
+          [username, plantId],
+        );
+
+        isAdded = true;
+      }
+    } else if (isFavorited) {
+      if (await isUserPlantExist(username, plantId, false, false, true)) {
+        response = h.response({
+          code: 409,
+          status: 'Conflict',
+          message: 'Plant already exists',
+        });
+
+        response.code(409);
+      } else {
+        result = await pool.query(
+          'INSERT INTO public."favorite" ("user", plant) VALUES ($1, $2) RETURNING *',
+          [username, plantId],
+        );
+
+        isAdded = true;
+      }
+    }
+
+    if (isAdded) {
+      if (result) {
+        response = h.response({
+          code: 201,
+          status: 'Created',
+          message: 'New user plant has been added successfully',
+        });
+      } else {
+        response = h.response({
+          code: 500,
+          status: 'Internal Server Error',
+          message: 'New user plant cannot be added',
+        });
+
+        response.code(500);
+      }
+    }
+  } catch (err) {
+    response = h.response({
+      code: 400,
+      status: 'Bad Request',
+      message: 'error',
+    });
+
+    response.code(400);
+
+    console.log(err);
+  }
+
+  return response;
+};
+
 const getUserProfile = async (request, h) => {
   const { username } = request.params;
   let response = '';
@@ -120,4 +244,8 @@ const getUserProfile = async (request, h) => {
   return response;
 };
 
-module.exports = { getPlantsByUsername, getUserProfile };
+module.exports = {
+  getPlantsByUsername,
+  getUserProfile,
+  addPlantByUsername,
+};
