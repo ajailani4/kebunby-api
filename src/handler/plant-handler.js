@@ -92,8 +92,7 @@ const getPlantDetails = async (request, h) => {
           steps: plant.steps,
           popularity: plant.popularity,
           author: plant.author,
-          publishedOn: plant.publishedOn,
-          isFavorited: plant.isFavorited,
+          publishedOn: plant.published_on.toISOString().split('T')[0],
         },
       });
 
