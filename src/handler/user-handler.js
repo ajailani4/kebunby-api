@@ -196,6 +196,99 @@ const addPlantByUsername = async (request, h) => {
   return response;
 };
 
+const deletePlantByUsername = async (request, h) => {
+  const { username, plantId } = request.params;
+  const { isPlanting, isPlanted, isFavorited } = request.query;
+  let result = '';
+  let response = '';
+  let isDeleted = false;
+
+  try {
+    if (isPlanting) {
+      if (await isUserPlantExist(username, plantId, true, false, false)) {
+        result = await pool.query(
+          'DELETE FROM public."planting" WHERE "user"=$1 AND plant=$2',
+          [username, plantId],
+        );
+
+        isDeleted = true;
+      } else {
+        response = h.response({
+          code: 404,
+          status: 'Not found',
+          message: 'Plant is not found',
+        });
+
+        response.code(409);
+      }
+    } else if (isPlanted) {
+      if (await isUserPlantExist(username, plantId, false, true, false)) {
+        result = await pool.query(
+          'DELETE FROM public."planted" WHERE "user"=$1 AND plant=$2',
+          [username, plantId],
+        );
+
+        isDeleted = true;
+      } else {
+        response = h.response({
+          code: 404,
+          status: 'Not found',
+          message: 'Plant is not found',
+        });
+
+        response.code(409);
+      }
+    } else if (isFavorited) {
+      if (await isUserPlantExist(username, plantId, false, false, true)) {
+        result = await pool.query(
+          'DELETE FROM public."favorite" WHERE "user"=$1 AND plant=$2',
+          [username, plantId],
+        );
+
+        isDeleted = true;
+      } else {
+        response = h.response({
+          code: 404,
+          status: 'Not found',
+          message: 'Plant is not found',
+        });
+
+        response.code(409);
+      }
+    }
+
+    if (isDeleted) {
+      if (result) {
+        response = h.response({
+          code: 200,
+          status: 'OK',
+          message: 'Plant has been deleted',
+        });
+      } else {
+        response = h.response({
+          code: 500,
+          status: 'Internal Server Error',
+          message: 'New user plant cannot be added',
+        });
+
+        response.code(500);
+      }
+    }
+  } catch (err) {
+    response = h.response({
+      code: 400,
+      status: 'Bad Request',
+      message: 'error',
+    });
+
+    response.code(400);
+
+    console.log(err);
+  }
+
+  return response;
+};
+
 const getUserProfile = async (request, h) => {
   const { username } = request.params;
   let response = '';
@@ -248,4 +341,5 @@ module.exports = {
   getPlantsByUsername,
   getUserProfile,
   addPlantByUsername,
+  deletePlantByUsername,
 };
