@@ -14,7 +14,7 @@ const getPlants = async (request, h) => {
     // Get all plants
     if ((!isTrending || isTrending === 'false') && !searchQuery) {
       result = await pool.query(
-        'SELECT * FROM public."plant" OFFSET $1 LIMIT $2',
+        'SELECT * FROM public."plant" ORDER BY published_on DESC OFFSET $1 LIMIT $2',
         [(page - 1) * size, size],
       );
     }
