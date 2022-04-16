@@ -11,6 +11,7 @@ const {
   getPlantsByUsername,
   getUserProfile,
   addPlantByUsername,
+  deletePlantByUsername
 } = require('./handler/user-handler');
 
 const prefix = '/api/v1';
@@ -102,6 +103,13 @@ const routes = [
     path: `${prefix}/users/{username}/plants`,
     config: { auth: 'jwt' },
     handler: addPlantByUsername,
+  },
+  // Delete Plant by Username
+  {
+    method: 'DELETE',
+    path: `${prefix}/users/{username}/plants/{plantId}`,
+    config: { auth: 'jwt' },
+    handler: deletePlantByUsername,
   },
   // Get User Profile
   {
