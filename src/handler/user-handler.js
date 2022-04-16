@@ -14,7 +14,7 @@ const getPlantsByUsername = async (request, h) => {
     // Get posts
     if ((!isPlanting || isPlanting === 'false') && (!isPlanted || isPlanted === 'false') && (!isFavorited || isFavorited === 'false')) {
       result = await pool.query(
-        'SELECT * FROM public."plant" WHERE author = $1 OFFSET $2 LIMIT $3',
+        'SELECT * FROM public."plant" WHERE author = $1 ORDER BY published_on DESC OFFSET $2 LIMIT $3',
         [username, (page - 1) * size, size],
       );
     }
