@@ -14,7 +14,7 @@ const getPlants = async (request, h) => {
     // Get all plants
     if ((!isTrending || isTrending === 'false') && !searchQuery) {
       result = await pool.query(
-        'SELECT * FROM public."plant" OFFSET $1 LIMIT $2',
+        'SELECT * FROM public."plant" ORDER BY published_on DESC OFFSET $1 LIMIT $2',
         [(page - 1) * size, size],
       );
     }
@@ -30,7 +30,7 @@ const getPlants = async (request, h) => {
     // Get plants by search query
     if (searchQuery) {
       result = await pool.query(
-        `SELECT * FROM public."plant" WHERE name ILIKE '%${searchQuery}%' OFFSET $1 LIMIT $2`,
+        `SELECT * FROM public."plant" WHERE name ILIKE '%${searchQuery}%' ORDER BY published_on DESC OFFSET $1 LIMIT $2`,
         [(page - 1) * size, size],
       );
     }
@@ -92,8 +92,7 @@ const getPlantDetails = async (request, h) => {
           steps: plant.steps,
           popularity: plant.popularity,
           author: plant.author,
-          publishedOn: plant.publishedOn,
-          isFavorited: plant.isFavorited,
+          publishedOn: plant.published_on.toISOString().split('T')[0],
         },
       });
 
