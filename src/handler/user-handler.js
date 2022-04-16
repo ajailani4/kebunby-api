@@ -130,7 +130,7 @@ const addUserActivity = async (request, h) => {
         response = h.response({
           code: 409,
           status: 'Conflict',
-          message: 'Plant already exists',
+          message: 'User activity already exists',
         });
 
         response.code(409);
@@ -147,7 +147,7 @@ const addUserActivity = async (request, h) => {
         response = h.response({
           code: 409,
           status: 'Conflict',
-          message: 'Plant already exists',
+          message: 'User activity already exists',
         });
 
         response.code(409);
@@ -164,7 +164,7 @@ const addUserActivity = async (request, h) => {
         response = h.response({
           code: 409,
           status: 'Conflict',
-          message: 'Plant already exists',
+          message: 'User activity already exists',
         });
 
         response.code(409);
@@ -196,13 +196,13 @@ const addUserActivity = async (request, h) => {
         response = h.response({
           code: 201,
           status: 'Created',
-          message: 'New user plant has been added successfully',
+          message: 'New user activity has been added successfully',
         });
       } else {
         response = h.response({
           code: 500,
           status: 'Internal Server Error',
-          message: 'New user plant cannot be added',
+          message: 'New user activity cannot be added',
         });
 
         response.code(500);
@@ -243,7 +243,7 @@ const deleteUserActivity = async (request, h) => {
         response = h.response({
           code: 404,
           status: 'Not found',
-          message: 'Plant is not found',
+          message: 'User activity is not found',
         });
 
         response.code(409);
@@ -260,7 +260,7 @@ const deleteUserActivity = async (request, h) => {
         response = h.response({
           code: 404,
           status: 'Not found',
-          message: 'Plant is not found',
+          message: 'User activity not found',
         });
 
         response.code(409);
@@ -277,7 +277,7 @@ const deleteUserActivity = async (request, h) => {
         response = h.response({
           code: 404,
           status: 'Not found',
-          message: 'Plant is not found',
+          message: 'User activity not found',
         });
 
         response.code(409);
@@ -289,13 +289,13 @@ const deleteUserActivity = async (request, h) => {
         response = h.response({
           code: 200,
           status: 'OK',
-          message: 'Plant has been deleted',
+          message: 'User activity has been deleted',
         });
       } else {
         response = h.response({
           code: 500,
           status: 'Internal Server Error',
-          message: 'New user plant cannot be added',
+          message: 'User activity plant cannot be deleted',
         });
 
         response.code(500);
