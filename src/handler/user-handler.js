@@ -1,5 +1,35 @@
 const pool = require('../config/db-config');
 
+const isUserActivityExist = async (username, plantId, isPlanting, isPlanted, isFavorited) => {
+  let isExist = false;
+  let query = '';
+
+  try {
+    if (isPlanting) {
+      query = 'SELECT * FROM public."planting" WHERE "user"=$1 AND plant=$2';
+    } else if (isPlanted) {
+      query = 'SELECT * FROM public."planted" WHERE "user"=$1 AND plant=$2';
+    } else if (isFavorited) {
+      query = 'SELECT * FROM public."favorite" WHERE "user"=$1 AND plant=$2';
+    }
+
+    const result = await pool.query(
+      query,
+      [username, plantId],
+    );
+
+    if (result.rows[0]) {
+      isExist = true;
+    } else {
+      isExist = false;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+
+  return isExist;
+};
+
 const getUserActivities = async (request, h) => {
   const { username } = request.params;
   const { isPlanting, isPlanted, isFavorited } = request.query;
@@ -43,18 +73,32 @@ const getUserActivities = async (request, h) => {
       );
     }
 
-    response = h.response({
-      code: 200,
-      status: 'OK',
-      data: result.rows.map((plant) => ({
-        id: plant.id,
-        name: plant.name,
-        image: plant.image,
-        wateringFreq: plant.watering_freq,
-        growthEst: plant.growth_est,
-        popularity: plant.popularity,
-      })),
-    });
+    if (!isFavorited) {
+      response = h.response({
+        code: 200,
+        status: 'OK',
+        data: await Promise.all(result.rows.map(async (plant) => ({
+          id: plant.id,
+          name: plant.name,
+          image: plant.image,
+          wateringFreq: plant.watering_freq,
+          popularity: plant.popularity,
+          isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
+        }))),
+      });
+    } else {
+      response = h.response({
+        code: 200,
+        status: 'OK',
+        data: result.rows.map((plant) => ({
+          id: plant.id,
+          name: plant.name,
+          image: plant.image,
+          wateringFreq: plant.watering_freq,
+          popularity: plant.popularity,
+        })),
+      });
+    }
 
     response.code(200);
   } catch (err) {
@@ -70,36 +114,6 @@ const getUserActivities = async (request, h) => {
   }
 
   return response;
-};
-
-const isUserActivityExist = async (username, plantId, isPlanting, isPlanted, isFavorited) => {
-  let isExist = false;
-  let query = '';
-
-  try {
-    if (isPlanting) {
-      query = 'SELECT * FROM public."planting" WHERE "user"=$1 AND plant=$2';
-    } else if (isPlanted) {
-      query = 'SELECT * FROM public."planted" WHERE "user"=$1 AND plant=$2';
-    } else if (isFavorited) {
-      query = 'SELECT * FROM public."favorite" WHERE "user"=$1 AND plant=$2';
-    }
-
-    const result = await pool.query(
-      query,
-      [username, plantId],
-    );
-
-    if (result.rows[0]) {
-      isExist = true;
-    } else {
-      isExist = false;
-    }
-  } catch (err) {
-    console.log(err);
-  }
-
-  return isExist;
 };
 
 const addUserActivity = async (request, h) => {
