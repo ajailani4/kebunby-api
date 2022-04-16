@@ -38,8 +38,8 @@ const getPlantsByUsername = async (request, h) => {
     // Get favorite plants
     if (isFavorited === 'true') {
       result = await pool.query(
-        'SELECT * FROM public."favorite" INNER JOIN public."plant" ON plant = "plant".id WHERE "user" = $1;',
-        [username],
+        'SELECT * FROM public."favorite" INNER JOIN public."plant" ON plant = "plant".id WHERE "user" = $1 ORDER BY "favorite".id DESC OFFSET $2 LIMIT $3',
+        [username, (page - 1) * size, size],
       );
     }
 
