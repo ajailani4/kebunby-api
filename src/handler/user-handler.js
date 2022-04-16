@@ -1,6 +1,36 @@
 const pool = require('../config/db-config');
 
-const getPlantsByUsername = async (request, h) => {
+const isUserActivityExist = async (username, plantId, isPlanting, isPlanted, isFavorited) => {
+  let isExist = false;
+  let query = '';
+
+  try {
+    if (isPlanting) {
+      query = 'SELECT * FROM public."planting" WHERE "user"=$1 AND plant=$2';
+    } else if (isPlanted) {
+      query = 'SELECT * FROM public."planted" WHERE "user"=$1 AND plant=$2';
+    } else if (isFavorited) {
+      query = 'SELECT * FROM public."favorite" WHERE "user"=$1 AND plant=$2';
+    }
+
+    const result = await pool.query(
+      query,
+      [username, plantId],
+    );
+
+    if (result.rows[0]) {
+      isExist = true;
+    } else {
+      isExist = false;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+
+  return isExist;
+};
+
+const getUserActivities = async (request, h) => {
   const { username } = request.params;
   const { isPlanting, isPlanted, isFavorited } = request.query;
   let { page, size } = request.query;
@@ -43,18 +73,32 @@ const getPlantsByUsername = async (request, h) => {
       );
     }
 
-    response = h.response({
-      code: 200,
-      status: 'OK',
-      data: result.rows.map((plant) => ({
-        id: plant.id,
-        name: plant.name,
-        image: plant.image,
-        wateringFreq: plant.watering_freq,
-        growthEst: plant.growth_est,
-        popularity: plant.popularity,
-      })),
-    });
+    if (!isFavorited) {
+      response = h.response({
+        code: 200,
+        status: 'OK',
+        data: await Promise.all(result.rows.map(async (plant) => ({
+          id: plant.id,
+          name: plant.name,
+          image: plant.image,
+          wateringFreq: plant.watering_freq,
+          popularity: plant.popularity,
+          isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
+        }))),
+      });
+    } else {
+      response = h.response({
+        code: 200,
+        status: 'OK',
+        data: result.rows.map((plant) => ({
+          id: plant.id,
+          name: plant.name,
+          image: plant.image,
+          wateringFreq: plant.watering_freq,
+          popularity: plant.popularity,
+        })),
+      });
+    }
 
     response.code(200);
   } catch (err) {
@@ -72,37 +116,7 @@ const getPlantsByUsername = async (request, h) => {
   return response;
 };
 
-const isUserPlantExist = async (username, plantId, isPlanting, isPlanted, isFavorited) => {
-  let isExist = false;
-  let query = '';
-
-  try {
-    if (isPlanting) {
-      query = 'SELECT * FROM public."planting" WHERE "user"=$1 AND plant=$2';
-    } else if (isPlanted) {
-      query = 'SELECT * FROM public."planted" WHERE "user"=$1 AND plant=$2';
-    } else if (isFavorited) {
-      query = 'SELECT * FROM public."favorite" WHERE "user"=$1 AND plant=$2';
-    }
-
-    const result = await pool.query(
-      query,
-      [username, plantId],
-    );
-
-    if (result.rows[0]) {
-      isExist = true;
-    } else {
-      isExist = false;
-    }
-  } catch (err) {
-    console.log(err);
-  }
-
-  return isExist;
-};
-
-const addPlantByUsername = async (request, h) => {
+const addUserActivity = async (request, h) => {
   const { username } = request.params;
   const { plantId } = request.payload;
   const { isPlanting, isPlanted, isFavorited } = request.query;
@@ -112,7 +126,7 @@ const addPlantByUsername = async (request, h) => {
 
   try {
     if (isPlanting) {
-      if (await isUserPlantExist(username, plantId, true, false, false)) {
+      if (await isUserActivityExist(username, plantId, true, false, false)) {
         response = h.response({
           code: 409,
           status: 'Conflict',
@@ -129,7 +143,7 @@ const addPlantByUsername = async (request, h) => {
         isAdded = true;
       }
     } else if (isPlanted) {
-      if (await isUserPlantExist(username, plantId, false, true, false)) {
+      if (await isUserActivityExist(username, plantId, false, true, false)) {
         response = h.response({
           code: 409,
           status: 'Conflict',
@@ -146,7 +160,7 @@ const addPlantByUsername = async (request, h) => {
         isAdded = true;
       }
     } else if (isFavorited) {
-      if (await isUserPlantExist(username, plantId, false, false, true)) {
+      if (await isUserActivityExist(username, plantId, false, false, true)) {
         response = h.response({
           code: 409,
           status: 'Conflict',
@@ -196,7 +210,7 @@ const addPlantByUsername = async (request, h) => {
   return response;
 };
 
-const deletePlantByUsername = async (request, h) => {
+const deleteUserActivity = async (request, h) => {
   const { username, plantId } = request.params;
   const { isPlanting, isPlanted, isFavorited } = request.query;
   let result = '';
@@ -205,7 +219,7 @@ const deletePlantByUsername = async (request, h) => {
 
   try {
     if (isPlanting) {
-      if (await isUserPlantExist(username, plantId, true, false, false)) {
+      if (await isUserActivityExist(username, plantId, true, false, false)) {
         result = await pool.query(
           'DELETE FROM public."planting" WHERE "user"=$1 AND plant=$2',
           [username, plantId],
@@ -222,7 +236,7 @@ const deletePlantByUsername = async (request, h) => {
         response.code(409);
       }
     } else if (isPlanted) {
-      if (await isUserPlantExist(username, plantId, false, true, false)) {
+      if (await isUserActivityExist(username, plantId, false, true, false)) {
         result = await pool.query(
           'DELETE FROM public."planted" WHERE "user"=$1 AND plant=$2',
           [username, plantId],
@@ -239,7 +253,7 @@ const deletePlantByUsername = async (request, h) => {
         response.code(409);
       }
     } else if (isFavorited) {
-      if (await isUserPlantExist(username, plantId, false, false, true)) {
+      if (await isUserActivityExist(username, plantId, false, false, true)) {
         result = await pool.query(
           'DELETE FROM public."favorite" WHERE "user"=$1 AND plant=$2',
           [username, plantId],
@@ -338,8 +352,9 @@ const getUserProfile = async (request, h) => {
 };
 
 module.exports = {
-  getPlantsByUsername,
+  getUserActivities,
+  isUserActivityExist,
+  addUserActivity,
+  deleteUserActivity,
   getUserProfile,
-  addPlantByUsername,
-  deletePlantByUsername,
 };

@@ -8,10 +8,10 @@ const {
 } = require('./handler/plant-handler');
 const { getPlantsByCategoryId, getPlantCategories } = require('./handler/category-handler');
 const {
-  getPlantsByUsername,
+  getUserActivities,
+  addUserActivity,
+  deleteUserActivity,
   getUserProfile,
-  addPlantByUsername,
-  deletePlantByUsername
 } = require('./handler/user-handler');
 
 const prefix = '/api/v1';
@@ -90,26 +90,26 @@ const routes = [
     config: { auth: 'jwt' },
     handler: getPlantCategories,
   },
-  // Get Plants by Username
+  // Get User Activity
   {
     method: 'GET',
     path: `${prefix}/users/{username}/plants`,
     config: { auth: 'jwt' },
-    handler: getPlantsByUsername,
+    handler: getUserActivities,
   },
-  // Add Plant by Username
+  // Add User Activity
   {
     method: 'POST',
     path: `${prefix}/users/{username}/plants`,
     config: { auth: 'jwt' },
-    handler: addPlantByUsername,
+    handler: addUserActivity,
   },
-  // Delete Plant by Username
+  // Delete User Activity
   {
     method: 'DELETE',
     path: `${prefix}/users/{username}/plants/{plantId}`,
     config: { auth: 'jwt' },
-    handler: deletePlantByUsername,
+    handler: deleteUserActivity,
   },
   // Get User Profile
   {
