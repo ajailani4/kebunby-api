@@ -174,6 +174,19 @@ const addUserActivity = async (request, h) => {
           [username, plantId],
         );
 
+        // Update plant popularity
+        const popularityRes = await pool.query(
+          'SELECT popularity FROM public."plant" WHERE id=$1',
+          [plantId],
+        );
+
+        const curPopularity = popularityRes.rows[0].popularity;
+
+        await pool.query(
+          'UPDATE public."plant" SET popularity=$1 WHERE id=$2',
+          [curPopularity + 1, plantId],
+        );
+
         isAdded = true;
       }
     }
