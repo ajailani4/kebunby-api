@@ -1,6 +1,7 @@
 const pool = require('../config/db-config');
 const { uploadImage, deleteImage } = require('../util/cloudinary-util');
-const { isUserActivityExist } = require('./user-handler');
+const { isUserActivityExist } = require('../util/user-util');
+const { getPlantCategory } = require('../util/category-util');
 
 const getPlants = async (request, h) => {
   let { page, size } = request.query;
@@ -44,6 +45,7 @@ const getPlants = async (request, h) => {
         id: plant.id,
         name: plant.name,
         image: plant.image,
+        category: await getPlantCategory(plant.category),
         wateringFreq: plant.watering_freq,
         popularity: plant.popularity,
         isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
@@ -87,7 +89,7 @@ const getPlantDetails = async (request, h) => {
           name: plant.name,
           latinName: plant.latin_name,
           image: plant.image,
-          category: 1,
+          category: await getPlantCategory(plant.category),
           wateringFreq: plant.watering_freq,
           growthEst: plant.growth_est,
           tools: plant.tools,

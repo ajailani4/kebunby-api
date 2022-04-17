@@ -1,5 +1,6 @@
 const pool = require('../config/db-config');
-const { isUserActivityExist } = require('./user-handler');
+const { isUserActivityExist } = require('../util/user-util');
+const { getPlantCategory } = require('../util/category-util');
 
 const getPlantsByCategoryId = async (request, h) => {
   let { page, size } = request.query;
@@ -23,6 +24,7 @@ const getPlantsByCategoryId = async (request, h) => {
         id: plant.id,
         name: plant.name,
         image: plant.image,
+        category: await getPlantCategory(plant.category),
         wateringFreq: plant.watering_freq,
         popularity: plant.popularity,
         isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
