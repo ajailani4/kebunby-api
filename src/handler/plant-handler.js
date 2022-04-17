@@ -89,7 +89,7 @@ const getPlantDetails = async (request, h) => {
           name: plant.name,
           latinName: plant.latin_name,
           image: plant.image,
-          category: 1,
+          category: await getPlantCategory(plant.category),
           wateringFreq: plant.watering_freq,
           growthEst: plant.growth_est,
           tools: plant.tools,
