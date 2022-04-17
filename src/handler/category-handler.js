@@ -1,8 +1,10 @@
 const pool = require('../config/db-config');
+const { isUserActivityExist } = require('./user-handler');
 
 const getPlantsByCategoryId = async (request, h) => {
   let { page, size } = request.query;
   const { id } = request.params;
+  const { username } = request.auth.credentials;
   let response = '';
 
   try {
@@ -17,13 +19,14 @@ const getPlantsByCategoryId = async (request, h) => {
     response = h.response({
       code: 200,
       status: 'OK',
-      data: result.rows.map((plant) => ({
+      data: await Promise.all(result.rows.map(async (plant) => ({
         id: plant.id,
         name: plant.name,
         image: plant.image,
         wateringFreq: plant.watering_freq,
         popularity: plant.popularity,
-      })),
+        isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
+      }))),
     });
 
     response.code(200);
