@@ -42,6 +42,7 @@ const getPlantsByCategoryId = async (request, h) => {
         id: plant.id,
         name: plant.name,
         image: plant.image,
+        category: await getPlantCategory(plant.category),
         wateringFreq: plant.watering_freq,
         popularity: plant.popularity,
         isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
