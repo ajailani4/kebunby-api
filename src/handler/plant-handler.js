@@ -5,7 +5,7 @@ const { getPlantCategory } = require('../util/category-util');
 
 const getPlants = async (request, h) => {
   let { page, size } = request.query;
-  const { isTrending, searchQuery } = request.query;
+  const { isTrending, forBeginner, searchQuery } = request.query;
   const { username } = request.auth.credentials;
   let response = '';
   let result = '';
@@ -15,7 +15,7 @@ const getPlants = async (request, h) => {
     size = size || 10;
 
     // Get all plants
-    if ((!isTrending || isTrending === 'false') && !searchQuery) {
+    if ((!isTrending || isTrending === 'false') && (!forBeginner || forBeginner === 'false') && !searchQuery) {
       result = await pool.query(
         'SELECT * FROM public."plant" ORDER BY published_on DESC OFFSET $1 LIMIT $2',
         [(page - 1) * size, size],
@@ -28,6 +28,11 @@ const getPlants = async (request, h) => {
         'SELECT * FROM public."plant" ORDER BY popularity DESC OFFSET $1 LIMIT $2',
         [(page - 1) * size, size],
       );
+    }
+
+    // Get for beginner plants
+    if (forBeginner === 'true') {
+      result = await pool.query('SELECT * FROM public."plant" ORDER BY id ASC OFFSET 0 LIMIT 5');
     }
 
     // Get plants by search query
