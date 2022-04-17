@@ -1,34 +1,6 @@
 const pool = require('../config/db-config');
-
-const isUserActivityExist = async (username, plantId, isPlanting, isPlanted, isFavorited) => {
-  let isExist = false;
-  let query = '';
-
-  try {
-    if (isPlanting) {
-      query = 'SELECT * FROM public."planting" WHERE "user"=$1 AND plant=$2';
-    } else if (isPlanted) {
-      query = 'SELECT * FROM public."planted" WHERE "user"=$1 AND plant=$2';
-    } else if (isFavorited) {
-      query = 'SELECT * FROM public."favorite" WHERE "user"=$1 AND plant=$2';
-    }
-
-    const result = await pool.query(
-      query,
-      [username, plantId],
-    );
-
-    if (result.rows[0]) {
-      isExist = true;
-    } else {
-      isExist = false;
-    }
-  } catch (err) {
-    console.log(err);
-  }
-
-  return isExist;
-};
+const { isUserActivityExist } = require('../util/user-util');
+const { getPlantCategory } = require('../util/category-util');
 
 const getUserActivities = async (request, h) => {
   const { username } = request.params;
@@ -81,6 +53,7 @@ const getUserActivities = async (request, h) => {
           id: plant.id,
           name: plant.name,
           image: plant.image,
+          category: await getPlantCategory(plant.category),
           wateringFreq: plant.watering_freq,
           popularity: plant.popularity,
           isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
@@ -90,13 +63,14 @@ const getUserActivities = async (request, h) => {
       response = h.response({
         code: 200,
         status: 'OK',
-        data: result.rows.map((plant) => ({
+        data: await Promise.all(result.rows.map(async (plant) => ({
           id: plant.id,
           name: plant.name,
           image: plant.image,
+          category: await getPlantCategory(plant.category),
           wateringFreq: plant.watering_freq,
           popularity: plant.popularity,
-        })),
+        }))),
       });
     }
 
@@ -366,7 +340,6 @@ const getUserProfile = async (request, h) => {
 
 module.exports = {
   getUserActivities,
-  isUserActivityExist,
   addUserActivity,
   deleteUserActivity,
   getUserProfile,

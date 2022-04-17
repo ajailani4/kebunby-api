@@ -1,7 +1,7 @@
 const pool = require('../config/db-config');
 const { uploadImage, deleteImage } = require('../util/cloudinary-util');
-const { getPlantCategory } = require('./category-handler');
-const { isUserActivityExist } = require('./user-handler');
+const { isUserActivityExist } = require('../util/user-util');
+const { getPlantCategory } = require('../util/category-util');
 
 const getPlants = async (request, h) => {
   let { page, size } = request.query;
