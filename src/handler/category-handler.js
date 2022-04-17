@@ -1,6 +1,25 @@
 const pool = require('../config/db-config');
 const { isUserActivityExist } = require('./user-handler');
 
+const getPlantCategory = async (id) => {
+  let category = '';
+
+  try {
+    const result = await pool.query(
+      'SELECT category FROM public."category" WHERE id=$1',
+      [id],
+    );
+
+    if (result.rows[0]) {
+      category = result.rows[0].category;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+
+  return category;
+};
+
 const getPlantsByCategoryId = async (request, h) => {
   let { page, size } = request.query;
   const { id } = request.params;
@@ -76,4 +95,8 @@ const getPlantCategories = async (request, h) => {
   return response;
 };
 
-module.exports = { getPlantsByCategoryId, getPlantCategories };
+module.exports = {
+  getPlantCategory,
+  getPlantsByCategoryId,
+  getPlantCategories,
+};

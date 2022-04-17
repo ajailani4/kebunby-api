@@ -1,5 +1,6 @@
 const pool = require('../config/db-config');
 const { uploadImage, deleteImage } = require('../util/cloudinary-util');
+const { getPlantCategory } = require('./category-handler');
 const { isUserActivityExist } = require('./user-handler');
 
 const getPlants = async (request, h) => {
@@ -44,6 +45,7 @@ const getPlants = async (request, h) => {
         id: plant.id,
         name: plant.name,
         image: plant.image,
+        category: await getPlantCategory(plant.category),
         wateringFreq: plant.watering_freq,
         popularity: plant.popularity,
         isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
