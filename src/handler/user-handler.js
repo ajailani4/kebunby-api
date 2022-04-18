@@ -246,6 +246,21 @@ const deleteUserActivity = async (request, h) => {
           [username, plantId],
         );
 
+        // Update plant popularity
+        const popularityRes = await pool.query(
+          'SELECT popularity FROM public."plant" WHERE id=$1',
+          [plantId],
+        );
+
+        const curPopularity = popularityRes.rows[0].popularity;
+
+        if (curPopularity >= 0) {
+          await pool.query(
+            'UPDATE public."plant" SET popularity=$1 WHERE id=$2',
+            [curPopularity - 1, plantId],
+          );
+        }
+
         isDeleted = true;
       } else {
         response = h.response({
