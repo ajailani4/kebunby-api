@@ -172,6 +172,8 @@ const addUserActivity = async (request, h) => {
           status: 'Created',
           message: 'New user activity has been added successfully',
         });
+
+        response.code(201);
       } else {
         response = h.response({
           code: 500,
@@ -280,6 +282,8 @@ const deleteUserActivity = async (request, h) => {
           status: 'OK',
           message: 'User activity has been deleted',
         });
+
+        response.code(200);
       } else {
         response = h.response({
           code: 500,
