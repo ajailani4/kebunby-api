@@ -32,7 +32,10 @@ const getPlants = async (request, h) => {
 
     // Get for beginner plants
     if (forBeginner === 'true') {
-      result = await pool.query('SELECT * FROM public."plant" ORDER BY id ASC OFFSET 0 LIMIT 5');
+      result = await pool.query(
+        'SELECT * FROM public."plant" ORDER BY id ASC OFFSET $1 LIMIT $2',
+        [(page - 1) * size, size],
+      );
     }
 
     // Get plants by search query
