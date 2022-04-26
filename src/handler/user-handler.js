@@ -68,6 +68,7 @@ const getUserActivities = async (request, h) => {
           name: plant.name,
           image: plant.image,
           category: await getPlantCategory(plant.category),
+          growthEst: plant.growth_est,
           wateringFreq: plant.watering_freq,
           popularity: plant.popularity,
         }))),
