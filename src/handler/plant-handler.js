@@ -79,6 +79,7 @@ const getPlants = async (request, h) => {
 
 const getPlantDetails = async (request, h) => {
   const { id } = request.params;
+  const { username } = request.auth.credentials;
   let response = '';
 
   try {
@@ -99,6 +100,7 @@ const getPlantDetails = async (request, h) => {
           latinName: plant.latin_name,
           image: plant.image,
           category: await getPlantCategory(plant.category),
+          isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
           wateringFreq: plant.watering_freq,
           growthEst: plant.growth_est,
           tools: plant.tools,
