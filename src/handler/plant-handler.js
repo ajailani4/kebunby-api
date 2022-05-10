@@ -77,7 +77,7 @@ const getPlants = async (request, h) => {
   return response;
 };
 
-const getPlantDetails = async (request, h) => {
+const getPlantDetail = async (request, h) => {
   const { id } = request.params;
   const { username } = request.auth.credentials;
   let response = '';
@@ -100,6 +100,8 @@ const getPlantDetails = async (request, h) => {
           latinName: plant.latin_name,
           image: plant.image,
           category: await getPlantCategory(plant.category),
+          isPlanting: await isUserActivityExist(username, plant.id, true, false, false),
+          isPlanted: await isUserActivityExist(username, plant.id, false, true, false),
           isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
           wateringFreq: plant.watering_freq,
           growthEst: plant.growth_est,
@@ -418,7 +420,7 @@ const deletePlant = async (request, h) => {
 
 module.exports = {
   getPlants,
-  getPlantDetails,
+  getPlantDetail,
   uploadPlant,
   updatePlant,
   deletePlant,

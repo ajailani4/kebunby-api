@@ -1,7 +1,7 @@
 const { register, login } = require('./handler/identity-handler');
 const {
   getPlants,
-  getPlantDetails,
+  getPlantDetail,
   uploadPlant,
   updatePlant,
   deletePlant,
@@ -43,7 +43,7 @@ const routes = [
     method: 'GET',
     path: `${prefix}/plants/{id}`,
     config: { auth: 'jwt' },
-    handler: getPlantDetails,
+    handler: getPlantDetail,
   },
   // Upload Plant
   {
