@@ -132,6 +132,11 @@ const addUserActivity = async (request, h) => {
           [username, plantId],
         );
 
+        await pool.query(
+          'DELETE FROM public."planting" WHERE "user"=$1 AND plant=$2',
+          [username, plantId],
+        );
+
         isAdded = true;
       }
     } else if (isFavorited) {
