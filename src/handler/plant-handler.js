@@ -1,5 +1,6 @@
 const pool = require('../config/db-config');
 const { uploadImage, deleteImage } = require('../util/cloudinary-util');
+const { isPlantExist } = require('../util/plant-util');
 const { isUserActivityExist } = require('../util/user-util');
 const { getPlantCategory } = require('../util/category-util');
 
@@ -216,27 +217,6 @@ const uploadPlant = async (request, h) => {
   }
 
   return response;
-};
-
-const isPlantExist = async (id) => {
-  let isExist = false;
-
-  try {
-    const result = await pool.query(
-      'SELECT * FROM public."plant" WHERE id=$1',
-      [id],
-    );
-
-    if (result.rows[0]) {
-      isExist = true;
-    } else {
-      isExist = false;
-    }
-  } catch (err) {
-    console.log(err);
-  }
-
-  return isExist;
 };
 
 const updatePlant = async (request, h) => {

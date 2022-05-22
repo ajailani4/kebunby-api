@@ -1,8 +1,8 @@
 const pool = require('../config/db-config');
-const { isUserActivityExist } = require('../util/user-util');
+const { isUserActivityExist, getUserActivitiesCount } = require('../util/user-util');
 const { getPlantCategory } = require('../util/category-util');
 
-const getUserActivities = async (request, h) => {
+const getPlantActivities = async (request, h) => {
   const { username } = request.params;
   const { isPlanting, isPlanted, isFavorited } = request.query;
   let { page, size } = request.query;
@@ -91,7 +91,7 @@ const getUserActivities = async (request, h) => {
   return response;
 };
 
-const addUserActivity = async (request, h) => {
+const addPlantActivity = async (request, h) => {
   const { username } = request.params;
   const { plantId } = request.payload;
   const { isPlanting, isPlanted, isFavorited } = request.query;
@@ -205,7 +205,7 @@ const addUserActivity = async (request, h) => {
   return response;
 };
 
-const deleteUserActivity = async (request, h) => {
+const deletePlantActivity = async (request, h) => {
   const { username, plantId } = request.params;
   const { isPlanting, isPlanted, isFavorited } = request.query;
   let result = '';
@@ -336,6 +336,9 @@ const getUserProfile = async (request, h) => {
           email: profile.email,
           name: profile.name,
           avatar: profile.avatar,
+          planting: await getUserActivitiesCount(username, true, false, false),
+          planted: await getUserActivitiesCount(username, false, true, false),
+          uploaded: await getUserActivitiesCount(username, false, false, false),
         },
       });
 
@@ -364,8 +367,8 @@ const getUserProfile = async (request, h) => {
 };
 
 module.exports = {
-  getUserActivities,
-  addUserActivity,
-  deleteUserActivity,
+  getPlantActivities,
+  addPlantActivity,
+  deletePlantActivity,
   getUserProfile,
 };
