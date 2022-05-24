@@ -54,6 +54,7 @@ const getPlantActivities = async (request, h) => {
           name: plant.name,
           image: plant.image,
           category: await getPlantCategory(plant.category),
+          growthEst: plant.growth_est,
           wateringFreq: plant.watering_freq,
           popularity: plant.popularity,
           isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
@@ -338,7 +339,7 @@ const getUserProfile = async (request, h) => {
           avatar: profile.avatar,
           planting: await getUserActivitiesCount(username, true, false, false),
           planted: await getUserActivitiesCount(username, false, true, false),
-          uploaded: await getUserActivitiesCount(username, false, false, false),
+          uploaded: await getUserActivitiesCount(username, false, false, true),
         },
       });
 
