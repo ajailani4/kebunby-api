@@ -106,6 +106,7 @@ const getPlantDetail = async (request, h) => {
           isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
           wateringFreq: plant.watering_freq,
           growthEst: plant.growth_est,
+          desc: plant.desc,
           tools: plant.tools,
           materials: plant.materials,
           steps: plant.steps,
