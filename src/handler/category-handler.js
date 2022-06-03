@@ -59,7 +59,7 @@ const getPlantCategories = async (request, h) => {
       status: 'OK',
       data: result.rows.map((category) => ({
         id: category.id,
-        category: category.category,
+        name: category.name,
       })),
     });
 

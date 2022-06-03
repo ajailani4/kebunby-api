@@ -14,7 +14,7 @@ const getPlantCategory = async (id) => {
 
       category = {
         id: categoryResult.id,
-        category: categoryResult.category,
+        name: categoryResult.name,
       };
     }
   } catch (err) {
