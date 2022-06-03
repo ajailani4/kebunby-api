@@ -1,16 +1,21 @@
 const pool = require('../config/db-config');
 
 const getPlantCategory = async (id) => {
-  let category = '';
+  let category = {};
 
   try {
     const result = await pool.query(
-      'SELECT category FROM public."category" WHERE id=$1',
+      'SELECT * FROM public."category" WHERE id=$1',
       [id],
     );
 
     if (result.rows[0]) {
-      category = result.rows[0].category;
+      const categoryResult = result.rows[0];
+
+      category = {
+        id: categoryResult.id,
+        category: categoryResult.category,
+      };
     }
   } catch (err) {
     console.log(err);
