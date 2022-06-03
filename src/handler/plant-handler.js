@@ -247,7 +247,7 @@ const updatePlant = async (request, h) => {
       steps = steps.split(', ');
 
       // Update plant from database
-      if (image.length > 0) {
+      if (image) {
         // If plant image is changed
         const uploadImageResult = await uploadImage('plant_images', image);
         image = uploadImageResult.url;
