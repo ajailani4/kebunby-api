@@ -1,6 +1,7 @@
 const pool = require('../config/db-config');
 const { uploadImage, deleteImage } = require('../util/cloudinary-util');
-const { isUserActivityExist } = require('../util/user-util');
+const { isPlantExist } = require('../util/plant-util');
+const { isPlantActivityExist, deletePlantActivity } = require('../util/user-util');
 const { getPlantCategory } = require('../util/category-util');
 
 const getPlants = async (request, h) => {
@@ -32,7 +33,10 @@ const getPlants = async (request, h) => {
 
     // Get for beginner plants
     if (forBeginner === 'true') {
-      result = await pool.query('SELECT * FROM public."plant" ORDER BY id ASC OFFSET 0 LIMIT 5');
+      result = await pool.query(
+        'SELECT * FROM public."plant" WHERE planting_level=1 ORDER BY id ASC OFFSET $1 LIMIT $2',
+        [(page - 1) * size, size],
+      );
     }
 
     // Get plants by search query
@@ -51,9 +55,10 @@ const getPlants = async (request, h) => {
         name: plant.name,
         image: plant.image,
         category: await getPlantCategory(plant.category),
+        growthEst: plant.growth_est,
         wateringFreq: plant.watering_freq,
         popularity: plant.popularity,
-        isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
+        isFavorited: await isPlantActivityExist(username, plant.id, false, false, true),
       }))),
     });
 
@@ -73,8 +78,9 @@ const getPlants = async (request, h) => {
   return response;
 };
 
-const getPlantDetails = async (request, h) => {
+const getPlantDetail = async (request, h) => {
   const { id } = request.params;
+  const { username } = request.auth.credentials;
   let response = '';
 
   try {
@@ -95,8 +101,12 @@ const getPlantDetails = async (request, h) => {
           latinName: plant.latin_name,
           image: plant.image,
           category: await getPlantCategory(plant.category),
+          isPlanting: await isPlantActivityExist(username, plant.id, true, false, false),
+          isPlanted: await isPlantActivityExist(username, plant.id, false, true, false),
+          isFavorited: await isPlantActivityExist(username, plant.id, false, false, true),
           wateringFreq: plant.watering_freq,
           growthEst: plant.growth_est,
+          desc: plant.desc,
           tools: plant.tools,
           materials: plant.materials,
           steps: plant.steps,
@@ -210,27 +220,6 @@ const uploadPlant = async (request, h) => {
   return response;
 };
 
-const isPlantExist = async (id) => {
-  let isExist = false;
-
-  try {
-    const result = await pool.query(
-      'SELECT * FROM public."plant" WHERE id=$1',
-      [id],
-    );
-
-    if (result.rows[0]) {
-      isExist = true;
-    } else {
-      isExist = false;
-    }
-  } catch (err) {
-    console.log(err);
-  }
-
-  return isExist;
-};
-
 const updatePlant = async (request, h) => {
   const { id } = request.params;
   const {
@@ -258,7 +247,7 @@ const updatePlant = async (request, h) => {
       steps = steps.split(', ');
 
       // Update plant from database
-      if (image.length > 0) {
+      if (image) {
         // If plant image is changed
         const uploadImageResult = await uploadImage('plant_images', image);
         image = uploadImageResult.url;
@@ -347,11 +336,25 @@ const updatePlant = async (request, h) => {
 
 const deletePlant = async (request, h) => {
   const { id } = request.params;
+  const { username } = request.auth.credentials;
   let result = '';
   let response = '';
 
   try {
     if (await isPlantExist(id)) {
+      // Delete plant from its relational tables
+      if (await isPlantActivityExist(username, id, true, false, false)) {
+        await deletePlantActivity(username, id, true, false, false);
+      }
+
+      if (await isPlantActivityExist(username, id, false, true, false)) {
+        await deletePlantActivity(username, id, false, true, false);
+      }
+
+      if (await isPlantActivityExist(username, id, false, false, true)) {
+        await deletePlantActivity(username, id, false, false, true);
+      }
+
       // Get image url
       result = await pool.query(
         'SELECT image FROM public."plant" WHERE id=$1',
@@ -412,7 +415,7 @@ const deletePlant = async (request, h) => {
 
 module.exports = {
   getPlants,
-  getPlantDetails,
+  getPlantDetail,
   uploadPlant,
   updatePlant,
   deletePlant,

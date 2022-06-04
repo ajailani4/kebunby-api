@@ -1,16 +1,16 @@
 const { register, login } = require('./handler/identity-handler');
 const {
   getPlants,
-  getPlantDetails,
+  getPlantDetail,
   uploadPlant,
   updatePlant,
   deletePlant,
 } = require('./handler/plant-handler');
 const { getPlantsByCategoryId, getPlantCategories } = require('./handler/category-handler');
 const {
-  getUserActivities,
-  addUserActivity,
-  deleteUserActivity,
+  getPlantActivities,
+  addPlantActivity,
+  deletePlantActivity,
   getUserProfile,
 } = require('./handler/user-handler');
 
@@ -43,7 +43,7 @@ const routes = [
     method: 'GET',
     path: `${prefix}/plants/{id}`,
     config: { auth: 'jwt' },
-    handler: getPlantDetails,
+    handler: getPlantDetail,
   },
   // Upload Plant
   {
@@ -95,21 +95,21 @@ const routes = [
     method: 'GET',
     path: `${prefix}/users/{username}/plants`,
     config: { auth: 'jwt' },
-    handler: getUserActivities,
+    handler: getPlantActivities,
   },
   // Add User Activity
   {
     method: 'POST',
     path: `${prefix}/users/{username}/plants`,
     config: { auth: 'jwt' },
-    handler: addUserActivity,
+    handler: addPlantActivity,
   },
   // Delete User Activity
   {
     method: 'DELETE',
     path: `${prefix}/users/{username}/plants/{plantId}`,
     config: { auth: 'jwt' },
-    handler: deleteUserActivity,
+    handler: deletePlantActivity,
   },
   // Get User Profile
   {

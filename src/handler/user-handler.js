@@ -1,8 +1,8 @@
 const pool = require('../config/db-config');
-const { isUserActivityExist } = require('../util/user-util');
+const { isPlantActivityExist, getPlantActivitiesCount } = require('../util/user-util');
 const { getPlantCategory } = require('../util/category-util');
 
-const getUserActivities = async (request, h) => {
+const getPlantActivities = async (request, h) => {
   const { username } = request.params;
   const { isPlanting, isPlanted, isFavorited } = request.query;
   let { page, size } = request.query;
@@ -54,9 +54,10 @@ const getUserActivities = async (request, h) => {
           name: plant.name,
           image: plant.image,
           category: await getPlantCategory(plant.category),
+          growthEst: plant.growth_est,
           wateringFreq: plant.watering_freq,
           popularity: plant.popularity,
-          isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
+          isFavorited: await isPlantActivityExist(username, plant.id, false, false, true),
         }))),
       });
     } else {
@@ -68,6 +69,7 @@ const getUserActivities = async (request, h) => {
           name: plant.name,
           image: plant.image,
           category: await getPlantCategory(plant.category),
+          growthEst: plant.growth_est,
           wateringFreq: plant.watering_freq,
           popularity: plant.popularity,
         }))),
@@ -90,7 +92,7 @@ const getUserActivities = async (request, h) => {
   return response;
 };
 
-const addUserActivity = async (request, h) => {
+const addPlantActivity = async (request, h) => {
   const { username } = request.params;
   const { plantId } = request.payload;
   const { isPlanting, isPlanted, isFavorited } = request.query;
@@ -100,7 +102,7 @@ const addUserActivity = async (request, h) => {
 
   try {
     if (isPlanting) {
-      if (await isUserActivityExist(username, plantId, true, false, false)) {
+      if (await isPlantActivityExist(username, plantId, true, false, false)) {
         response = h.response({
           code: 409,
           status: 'Conflict',
@@ -117,7 +119,7 @@ const addUserActivity = async (request, h) => {
         isAdded = true;
       }
     } else if (isPlanted) {
-      if (await isUserActivityExist(username, plantId, false, true, false)) {
+      if (await isPlantActivityExist(username, plantId, false, true, false)) {
         response = h.response({
           code: 409,
           status: 'Conflict',
@@ -131,10 +133,15 @@ const addUserActivity = async (request, h) => {
           [username, plantId],
         );
 
+        await pool.query(
+          'DELETE FROM public."planting" WHERE "user"=$1 AND plant=$2',
+          [username, plantId],
+        );
+
         isAdded = true;
       }
     } else if (isFavorited) {
-      if (await isUserActivityExist(username, plantId, false, false, true)) {
+      if (await isPlantActivityExist(username, plantId, false, false, true)) {
         response = h.response({
           code: 409,
           status: 'Conflict',
@@ -199,7 +206,7 @@ const addUserActivity = async (request, h) => {
   return response;
 };
 
-const deleteUserActivity = async (request, h) => {
+const deletePlantActivity = async (request, h) => {
   const { username, plantId } = request.params;
   const { isPlanting, isPlanted, isFavorited } = request.query;
   let result = '';
@@ -208,7 +215,7 @@ const deleteUserActivity = async (request, h) => {
 
   try {
     if (isPlanting) {
-      if (await isUserActivityExist(username, plantId, true, false, false)) {
+      if (await isPlantActivityExist(username, plantId, true, false, false)) {
         result = await pool.query(
           'DELETE FROM public."planting" WHERE "user"=$1 AND plant=$2',
           [username, plantId],
@@ -225,7 +232,7 @@ const deleteUserActivity = async (request, h) => {
         response.code(409);
       }
     } else if (isPlanted) {
-      if (await isUserActivityExist(username, plantId, false, true, false)) {
+      if (await isPlantActivityExist(username, plantId, false, true, false)) {
         result = await pool.query(
           'DELETE FROM public."planted" WHERE "user"=$1 AND plant=$2',
           [username, plantId],
@@ -242,7 +249,7 @@ const deleteUserActivity = async (request, h) => {
         response.code(409);
       }
     } else if (isFavorited) {
-      if (await isUserActivityExist(username, plantId, false, false, true)) {
+      if (await isPlantActivityExist(username, plantId, false, false, true)) {
         result = await pool.query(
           'DELETE FROM public."favorite" WHERE "user"=$1 AND plant=$2',
           [username, plantId],
@@ -330,6 +337,9 @@ const getUserProfile = async (request, h) => {
           email: profile.email,
           name: profile.name,
           avatar: profile.avatar,
+          planting: await getPlantActivitiesCount(username, true, false, false),
+          planted: await getPlantActivitiesCount(username, false, true, false),
+          uploaded: await getPlantActivitiesCount(username, false, false, true),
         },
       });
 
@@ -358,8 +368,8 @@ const getUserProfile = async (request, h) => {
 };
 
 module.exports = {
-  getUserActivities,
-  addUserActivity,
-  deleteUserActivity,
+  getPlantActivities,
+  addPlantActivity,
+  deletePlantActivity,
   getUserProfile,
 };

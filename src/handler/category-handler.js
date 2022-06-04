@@ -1,5 +1,5 @@
 const pool = require('../config/db-config');
-const { isUserActivityExist } = require('../util/user-util');
+const { isPlantActivityExist } = require('../util/user-util');
 const { getPlantCategory } = require('../util/category-util');
 
 const getPlantsByCategoryId = async (request, h) => {
@@ -25,9 +25,10 @@ const getPlantsByCategoryId = async (request, h) => {
         name: plant.name,
         image: plant.image,
         category: await getPlantCategory(plant.category),
+        growthEst: plant.growth_est,
         wateringFreq: plant.watering_freq,
         popularity: plant.popularity,
-        isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
+        isFavorited: await isPlantActivityExist(username, plant.id, false, false, true),
       }))),
     });
 
@@ -58,7 +59,7 @@ const getPlantCategories = async (request, h) => {
       status: 'OK',
       data: result.rows.map((category) => ({
         id: category.id,
-        category: category.category,
+        name: category.name,
       })),
     });
 
