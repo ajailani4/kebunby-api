@@ -1,5 +1,5 @@
 const pool = require('../config/db-config');
-const { isUserActivityExist } = require('../util/user-util');
+const { isPlantActivityExist } = require('../util/user-util');
 const { getPlantCategory } = require('../util/category-util');
 
 const getPlantsByCategoryId = async (request, h) => {
@@ -28,7 +28,7 @@ const getPlantsByCategoryId = async (request, h) => {
         growthEst: plant.growth_est,
         wateringFreq: plant.watering_freq,
         popularity: plant.popularity,
-        isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
+        isFavorited: await isPlantActivityExist(username, plant.id, false, false, true),
       }))),
     });
 
