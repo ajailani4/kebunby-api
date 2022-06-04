@@ -1,7 +1,7 @@
 const pool = require('../config/db-config');
 const { uploadImage, deleteImage } = require('../util/cloudinary-util');
 const { isPlantExist } = require('../util/plant-util');
-const { isUserActivityExist } = require('../util/user-util');
+const { isPlantActivityExist, deletePlantActivity } = require('../util/user-util');
 const { getPlantCategory } = require('../util/category-util');
 
 const getPlants = async (request, h) => {
@@ -58,7 +58,7 @@ const getPlants = async (request, h) => {
         growthEst: plant.growth_est,
         wateringFreq: plant.watering_freq,
         popularity: plant.popularity,
-        isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
+        isFavorited: await isPlantActivityExist(username, plant.id, false, false, true),
       }))),
     });
 
@@ -101,9 +101,9 @@ const getPlantDetail = async (request, h) => {
           latinName: plant.latin_name,
           image: plant.image,
           category: await getPlantCategory(plant.category),
-          isPlanting: await isUserActivityExist(username, plant.id, true, false, false),
-          isPlanted: await isUserActivityExist(username, plant.id, false, true, false),
-          isFavorited: await isUserActivityExist(username, plant.id, false, false, true),
+          isPlanting: await isPlantActivityExist(username, plant.id, true, false, false),
+          isPlanted: await isPlantActivityExist(username, plant.id, false, true, false),
+          isFavorited: await isPlantActivityExist(username, plant.id, false, false, true),
           wateringFreq: plant.watering_freq,
           growthEst: plant.growth_est,
           desc: plant.desc,
@@ -336,44 +336,61 @@ const updatePlant = async (request, h) => {
 
 const deletePlant = async (request, h) => {
   const { id } = request.params;
+  const { username } = request.auth.credentials;
+  let deleteForeignResult = false;
   let result = '';
   let response = '';
 
   try {
     if (await isPlantExist(id)) {
-      // Get image url
-      result = await pool.query(
-        'SELECT image FROM public."plant" WHERE id=$1',
-        [id],
-      );
+      // Delete plant from its relational tables
+      if (await isPlantActivityExist(username, id, true, false, false)) {
+        deleteForeignResult = await deletePlantActivity(username, id, true, false, false);
+      }
 
-      // Delete plant image from Cloudinary
-      const pathNames = result.rows[0].image.split('/');
-      const publicId = `${pathNames[pathNames.length - 2]}/${pathNames[pathNames.length - 1]}`.split('.')[0];
-      await deleteImage(publicId);
+      if (await isPlantActivityExist(username, id, false, true, false)) {
+        deleteForeignResult = await deletePlantActivity(username, id, false, true, false);
+      }
 
-      // Delete plant from database
-      result = await pool.query(
-        'DELETE FROM public."plant" WHERE id=$1',
-        [id],
-      );
+      if (await isPlantActivityExist(username, id, false, false, true)) {
+        deleteForeignResult = await deletePlantActivity(username, id, false, false, true);
+      }
 
-      if (result) {
-        response = h.response({
-          code: 200,
-          status: 'OK',
-          message: 'Plant has been deleted',
-        });
+      if (deleteForeignResult) {
+        // Get image url
+        result = await pool.query(
+          'SELECT image FROM public."plant" WHERE id=$1',
+          [id],
+        );
 
-        response.code(200);
-      } else {
-        response = h.response({
-          code: 500,
-          status: 'Internal Server Error',
-          message: 'Plant cannot be deleted',
-        });
+        // Delete plant image from Cloudinary
+        const pathNames = result.rows[0].image.split('/');
+        const publicId = `${pathNames[pathNames.length - 2]}/${pathNames[pathNames.length - 1]}`.split('.')[0];
+        await deleteImage(publicId);
 
-        response.code(500);
+        // Delete plant from database
+        result = await pool.query(
+          'DELETE FROM public."plant" WHERE id=$1',
+          [id],
+        );
+
+        if (result) {
+          response = h.response({
+            code: 200,
+            status: 'OK',
+            message: 'Plant has been deleted',
+          });
+
+          response.code(200);
+        } else {
+          response = h.response({
+            code: 500,
+            status: 'Internal Server Error',
+            message: 'Plant cannot be deleted',
+          });
+
+          response.code(500);
+        }
       }
     } else {
       response = h.response({
