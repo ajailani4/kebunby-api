@@ -337,7 +337,6 @@ const updatePlant = async (request, h) => {
 const deletePlant = async (request, h) => {
   const { id } = request.params;
   const { username } = request.auth.credentials;
-  let deleteForeignResult = false;
   let result = '';
   let response = '';
 
@@ -345,52 +344,50 @@ const deletePlant = async (request, h) => {
     if (await isPlantExist(id)) {
       // Delete plant from its relational tables
       if (await isPlantActivityExist(username, id, true, false, false)) {
-        deleteForeignResult = await deletePlantActivity(username, id, true, false, false);
+        await deletePlantActivity(username, id, true, false, false);
       }
 
       if (await isPlantActivityExist(username, id, false, true, false)) {
-        deleteForeignResult = await deletePlantActivity(username, id, false, true, false);
+        await deletePlantActivity(username, id, false, true, false);
       }
 
       if (await isPlantActivityExist(username, id, false, false, true)) {
-        deleteForeignResult = await deletePlantActivity(username, id, false, false, true);
+        await deletePlantActivity(username, id, false, false, true);
       }
 
-      if (deleteForeignResult) {
-        // Get image url
-        result = await pool.query(
-          'SELECT image FROM public."plant" WHERE id=$1',
-          [id],
-        );
+      // Get image url
+      result = await pool.query(
+        'SELECT image FROM public."plant" WHERE id=$1',
+        [id],
+      );
 
-        // Delete plant image from Cloudinary
-        const pathNames = result.rows[0].image.split('/');
-        const publicId = `${pathNames[pathNames.length - 2]}/${pathNames[pathNames.length - 1]}`.split('.')[0];
-        await deleteImage(publicId);
+      // Delete plant image from Cloudinary
+      const pathNames = result.rows[0].image.split('/');
+      const publicId = `${pathNames[pathNames.length - 2]}/${pathNames[pathNames.length - 1]}`.split('.')[0];
+      await deleteImage(publicId);
 
-        // Delete plant from database
-        result = await pool.query(
-          'DELETE FROM public."plant" WHERE id=$1',
-          [id],
-        );
+      // Delete plant from database
+      result = await pool.query(
+        'DELETE FROM public."plant" WHERE id=$1',
+        [id],
+      );
 
-        if (result) {
-          response = h.response({
-            code: 200,
-            status: 'OK',
-            message: 'Plant has been deleted',
-          });
+      if (result) {
+        response = h.response({
+          code: 200,
+          status: 'OK',
+          message: 'Plant has been deleted',
+        });
 
-          response.code(200);
-        } else {
-          response = h.response({
-            code: 500,
-            status: 'Internal Server Error',
-            message: 'Plant cannot be deleted',
-          });
+        response.code(200);
+      } else {
+        response = h.response({
+          code: 500,
+          status: 'Internal Server Error',
+          message: 'Plant cannot be deleted',
+        });
 
-          response.code(500);
-        }
+        response.code(500);
       }
     } else {
       response = h.response({
