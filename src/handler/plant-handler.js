@@ -1,7 +1,7 @@
 const pool = require('../config/db-config');
 const { uploadImage, deleteImage } = require('../util/cloudinary-util');
 const { isPlantExist } = require('../util/plant-util');
-const { isPlantActivityExist, deletePlantActivity } = require('../util/user-util');
+const { isPlantActivityExist } = require('../util/user-util');
 const { getPlantCategory } = require('../util/category-util');
 
 const getPlants = async (request, h) => {
@@ -336,25 +336,11 @@ const updatePlant = async (request, h) => {
 
 const deletePlant = async (request, h) => {
   const { id } = request.params;
-  const { username } = request.auth.credentials;
   let result = '';
   let response = '';
 
   try {
     if (await isPlantExist(id)) {
-      // Delete plant from its relational tables
-      if (await isPlantActivityExist(username, id, true, false, false)) {
-        await deletePlantActivity(username, id, true, false, false);
-      }
-
-      if (await isPlantActivityExist(username, id, false, true, false)) {
-        await deletePlantActivity(username, id, false, true, false);
-      }
-
-      if (await isPlantActivityExist(username, id, false, false, true)) {
-        await deletePlantActivity(username, id, false, false, true);
-      }
-
       // Get image url
       result = await pool.query(
         'SELECT image FROM public."plant" WHERE id=$1',

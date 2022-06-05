@@ -58,34 +58,4 @@ const getPlantActivitiesCount = async (username, isPlanting, isPlanted, isUpload
   return count;
 };
 
-const deletePlantActivity = async (username, plantId, isPlanting, isPlanted, isFavorited) => {
-  let isDeleted = false;
-  let query = '';
-
-  try {
-    if (isPlanting) {
-      query = 'DELETE FROM public."planting" WHERE "user"=$1 AND plant=$2';
-    } else if (isPlanted) {
-      query = 'DELETE FROM public."planted" WHERE "user"=$1 AND plant=$2';
-    } else if (isFavorited) {
-      query = 'DELETE FROM public."favorite" WHERE "user"=$1 AND plant=$2';
-    }
-
-    const result = await pool.query(
-      query,
-      [username, plantId],
-    );
-
-    if (result) isDeleted = true; else isDeleted = false;
-  } catch (err) {
-    console.log(err);
-  }
-
-  return isDeleted;
-};
-
-module.exports = {
-  isPlantActivityExist,
-  getPlantActivitiesCount,
-  deletePlantActivity,
-};
+module.exports = { isPlantActivityExist, getPlantActivitiesCount };
