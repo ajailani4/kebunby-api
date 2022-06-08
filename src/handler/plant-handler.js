@@ -149,22 +149,18 @@ const uploadPlant = async (request, h) => {
     wateringFreq,
     growthEst,
     desc,
+    tools,
+    materials,
+    steps,
     author,
   } = request.payload;
-  let {
-    image, tools, materials, steps,
-  } = request.payload;
+  let { image } = request.payload;
   let response = '';
 
   try {
     // Upload image to Cloudinary
     const uploadImageResult = await uploadImage('plant_images', image);
     image = uploadImageResult.url;
-
-    // Convert tools, materials, and steps to be array
-    tools = tools.split(', ');
-    materials = materials.split(', ');
-    steps = steps.split(', ');
 
     const publishedOn = new Date().toISOString().slice(0, 10);
 
@@ -179,9 +175,9 @@ const uploadPlant = async (request, h) => {
         wateringFreq,
         growthEst,
         desc,
-        tools,
-        materials,
-        steps,
+        [].concat(tools),
+        [].concat(materials),
+        [].concat(steps),
         0,
         author,
         publishedOn,
@@ -229,23 +225,19 @@ const updatePlant = async (request, h) => {
     wateringFreq,
     growthEst,
     desc,
+    tools,
+    materials,
+    steps,
     popularity,
     author,
     publishedOn,
   } = request.payload;
-  let {
-    image, tools, materials, steps,
-  } = request.payload;
+  let { image } = request.payload;
   let result = '';
   let response = '';
 
   try {
     if (await isPlantExist(id)) {
-      // Convert tools, materials, and steps to be array
-      tools = tools.split(', ');
-      materials = materials.split(', ');
-      steps = steps.split(', ');
-
       // Update plant from database
       if (image) {
         // If plant image is changed
@@ -262,9 +254,9 @@ const updatePlant = async (request, h) => {
             wateringFreq,
             growthEst,
             desc,
-            tools,
-            materials,
-            steps,
+            [].concat(tools),
+            [].concat(materials),
+            [].concat(steps),
             popularity,
             author,
             publishedOn,
@@ -282,9 +274,9 @@ const updatePlant = async (request, h) => {
             wateringFreq,
             growthEst,
             desc,
-            tools,
-            materials,
-            steps,
+            [].concat(tools),
+            [].concat(materials),
+            [].concat(steps),
             popularity,
             author,
             publishedOn,
