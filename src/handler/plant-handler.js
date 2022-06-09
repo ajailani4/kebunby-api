@@ -1,7 +1,7 @@
 const pool = require('../config/db-config');
 const { uploadImage, deleteImage } = require('../util/cloudinary-util');
 const { isPlantExist } = require('../util/plant-util');
-const { isPlantActivityExist, deletePlantActivity } = require('../util/user-util');
+const { isPlantActivityExist } = require('../util/user-util');
 const { getPlantCategory } = require('../util/category-util');
 
 const getPlants = async (request, h) => {
@@ -149,22 +149,18 @@ const uploadPlant = async (request, h) => {
     wateringFreq,
     growthEst,
     desc,
+    tools,
+    materials,
+    steps,
     author,
   } = request.payload;
-  let {
-    image, tools, materials, steps,
-  } = request.payload;
+  let { image } = request.payload;
   let response = '';
 
   try {
     // Upload image to Cloudinary
     const uploadImageResult = await uploadImage('plant_images', image);
     image = uploadImageResult.url;
-
-    // Convert tools, materials, and steps to be array
-    tools = tools.split(', ');
-    materials = materials.split(', ');
-    steps = steps.split(', ');
 
     const publishedOn = new Date().toISOString().slice(0, 10);
 
@@ -179,9 +175,9 @@ const uploadPlant = async (request, h) => {
         wateringFreq,
         growthEst,
         desc,
-        tools,
-        materials,
-        steps,
+        [].concat(tools),
+        [].concat(materials),
+        [].concat(steps),
         0,
         author,
         publishedOn,
@@ -229,23 +225,19 @@ const updatePlant = async (request, h) => {
     wateringFreq,
     growthEst,
     desc,
+    tools,
+    materials,
+    steps,
     popularity,
     author,
     publishedOn,
   } = request.payload;
-  let {
-    image, tools, materials, steps,
-  } = request.payload;
+  let { image } = request.payload;
   let result = '';
   let response = '';
 
   try {
     if (await isPlantExist(id)) {
-      // Convert tools, materials, and steps to be array
-      tools = tools.split(', ');
-      materials = materials.split(', ');
-      steps = steps.split(', ');
-
       // Update plant from database
       if (image) {
         // If plant image is changed
@@ -262,9 +254,9 @@ const updatePlant = async (request, h) => {
             wateringFreq,
             growthEst,
             desc,
-            tools,
-            materials,
-            steps,
+            [].concat(tools),
+            [].concat(materials),
+            [].concat(steps),
             popularity,
             author,
             publishedOn,
@@ -282,9 +274,9 @@ const updatePlant = async (request, h) => {
             wateringFreq,
             growthEst,
             desc,
-            tools,
-            materials,
-            steps,
+            [].concat(tools),
+            [].concat(materials),
+            [].concat(steps),
             popularity,
             author,
             publishedOn,
@@ -336,25 +328,11 @@ const updatePlant = async (request, h) => {
 
 const deletePlant = async (request, h) => {
   const { id } = request.params;
-  const { username } = request.auth.credentials;
   let result = '';
   let response = '';
 
   try {
     if (await isPlantExist(id)) {
-      // Delete plant from its relational tables
-      if (await isPlantActivityExist(username, id, true, false, false)) {
-        await deletePlantActivity(username, id, true, false, false);
-      }
-
-      if (await isPlantActivityExist(username, id, false, true, false)) {
-        await deletePlantActivity(username, id, false, true, false);
-      }
-
-      if (await isPlantActivityExist(username, id, false, false, true)) {
-        await deletePlantActivity(username, id, false, false, true);
-      }
-
       // Get image url
       result = await pool.query(
         'SELECT image FROM public."plant" WHERE id=$1',
