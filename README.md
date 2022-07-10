@@ -79,9 +79,9 @@ Body (form-data) :
 - wateringFreq: text
 - growthEst: text
 - desc: text
-- tools: text (**separated by comma**, e.g tool1, tool2)
-- materials: text (**separated by comma**, e.g material1, material2)
-- steps: text (**separated by comma**, e.g step1, step2)
+- tools: text (**can be multiple**)
+- materials: text (**can be multiple**)
+- steps: text (**can be multiple**)
 - author: text
 
 ### Update Plant
@@ -98,9 +98,9 @@ Body (form-data) :
 - wateringFreq: text
 - growthEst: text
 - desc: text
-- tools: text (**separated by comma**, e.g tool1, tool2)
-- materials: text (**separated by comma**, e.g material1, material2)
-- steps: text (**separated by comma**, e.g step1, step2)
+- tools: text (**can be multiple**
+- materials: text (**can be multiple**)
+- steps: text (**can be multiple**)
 - author: text
 
 ### Delete Plant
